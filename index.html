@@ -68,11 +68,16 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .item .g{flex:1;min-width:0}
 .item .t{font-weight:600;font-size:12.5px}
 .item .s{color:var(--muted);font-size:11px;margin-top:2px}
+.item .acts{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;flex:0 0 62px}
+@media(min-width:620px){.item .acts{flex:0 0 auto;flex-wrap:nowrap}}
+.item.plan{border-left:2px solid var(--acc);padding-left:8px}
 .tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;background:var(--surface2);border:1px solid var(--line);color:var(--muted);margin-left:5px;vertical-align:1px}
 .tag.open{color:var(--green);border-color:#1e402f}
 .tag.closed{color:var(--dim)}
 .tag.w{color:var(--gold);border-color:#3d3016}
 .tag.warn{color:var(--red);border-color:#3a2626}
+.tag.acc{color:var(--acc);border-color:#22406b}
+.mini.go{background:#17304f;border-color:#22406b;color:var(--acc)}
 .empty{color:var(--dim);font-size:12px;padding:6px 0;text-align:center}
 .hint{color:var(--dim);font-size:11px;margin-top:6px;line-height:1.5}
 .sep{height:1px;background:var(--line);margin:12px 0}
@@ -135,7 +140,7 @@ tr.elo-sum td{border-top:1px solid var(--line);border-bottom:0;font-weight:600;p
 body.ro #roBar{display:block;font-size:10.5px;color:var(--muted);margin-top:6px}
 body.ro nav button[data-v="game"], body.ro nav button[data-v="player"],
 body.ro #hSave, body.ro #hPub,
-body.ro #v-match > .card:first-child, body.ro #mList .mini,
+body.ro #v-match > .card:first-child, body.ro #mList .mini, body.ro #planList .mini, body.ro #planHint,
 body.ro #v-serie > .card:first-child, body.ro #histCard,
 body.ro #sList .mini, body.ro #sList .btns, body.ro #sList .sep,
 body.ro #capReset, body.ro [data-hy], body.ro #cSave, body.ro #cardData, body.ro #cardPub { display:none!important }
@@ -334,9 +339,13 @@ code{background:var(--surface2);padding:1px 4px;border-radius:3px;font-size:11px
       <div><label>Série</label><select id="mSerie"></select></div>
     </div>
     <div class="row"><div><label>Jeu <span id="mWeight" style="color:var(--dim)"></span></label><select id="mGame"></select></div></div>
-    <label class="chk"><input type="checkbox" id="mCount" checked=""><span>Compte dans les classements</span></label>
-    <div class="hint" style="margin:4px 0 0">Décochez pour une partie amicale, une démonstration ou un essai : elle sera enregistrée mais ignorée par l'Elo, les points, la qualification, les statistiques et les duels.</div>
-    <label>Participants — touchez dans l'ordre d'arrivée</label>
+    <label class="chk"><input type="checkbox" id="mPlan"><span>Partie prévue — résultat pas encore connu</span></label>
+    <div class="hint" style="margin:4px 0 0">À cocher pour préparer une soirée à l'avance : le jeu, la série et les participants sont enregistrés, mais la partie n'entre dans aucun calcul tant que le résultat n'est pas saisi. L'ordre réel des parties n'a pas à être connu : il se fixe au moment où vous saisissez les résultats.</div>
+    <div id="mCountWrap">
+      <label class="chk"><input type="checkbox" id="mCount" checked=""><span>Compte dans les classements</span></label>
+      <div class="hint" style="margin:4px 0 0">Décochez pour une partie amicale, une démonstration ou un essai : elle sera enregistrée mais ignorée par l'Elo, les points, la qualification, les statistiques et les duels.</div>
+    </div>
+    <label id="mPartLab">Participants — touchez dans l'ordre d'arrivée</label>
     <div class="chips" id="mChips"></div>
     <ol class="ord" id="mOrder"></ol>
     <div class="hint" id="mHint" style="display:none">↑↓ pour corriger l'ordre · <b>=</b> pour un ex æquo avec le joueur au-dessus</div>
@@ -345,6 +354,11 @@ code{background:var(--surface2);padding:1px 4px;border-radius:3px;font-size:11px
       <button class="btn" id="mSave">Enregistrer</button>
       <button class="btn sec" id="mReset">Annuler</button>
     </div>
+  </div>
+  <div class="card" id="planCard" style="display:none">
+    <h2>Parties prévues</h2>
+    <div id="planList"></div>
+    <div class="hint" id="planHint"></div>
   </div>
   <div class="card">
     <h2>Historique</h2>
@@ -457,8 +471,8 @@ Splendor;1.80"></textarea>
   <div class="card" id="cardPub">
     <h2>Publication en ligne</h2>
     <div class="row">
-      <div><label>Compte GitHub</label><input type="text" id="gOwner" placeholder="mon-compte" autocomplete="off" autocapitalize="none"></div>
-      <div><label>Dépôt</label><input type="text" id="gRepo" placeholder="meeple-dor" autocomplete="off" autocapitalize="none"></div>
+      <div><label>Compte GitHub</label><input type="text" id="gOwner" placeholder="mon-compte" autocomplete="off" autocapitalize="off"></div>
+      <div><label>Dépôt</label><input type="text" id="gRepo" placeholder="meeple-dor" autocomplete="off" autocapitalize="off"></div>
     </div>
     <div class="row"><div><label>Clé d'accès</label><input type="password" id="gTok" placeholder="github_pat_…" autocomplete="off"></div></div>
     <div class="btns">
@@ -522,7 +536,7 @@ function migrate(){
   // est considéré comme confirmé — l'appli ne connaît pas son historique antérieur
   let chg=false;
   DB.players.forEach(p=>{ if(p.vet===undefined){
-    p.vet=DB.matches.some(m=>m.results.some(r=>r.playerId===p.id)); chg=true; } });
+    p.vet=DB.matches.some(m=>!m.plan&&m.results.some(r=>r.playerId===p.id)); chg=true; } });
   return chg;
 }
 function load(){ try{const r=localStorage.getItem(KEY); if(r) applyData(JSON.parse(r));}catch(e){}
@@ -555,9 +569,14 @@ const calibON=()=>(+DB.settings.newN||0)>0&&(+DB.settings.newMult||1)!==1;
 const enCalib=(id,played)=>calibON()&&!P(id).vet&&played<(+DB.settings.newN||0);
 function seasonOf(m){ const s=m.seriesId?sBySeries(m.seriesId):null;
   return (s&&s.season)?String(s.season):m.date.slice(0,4); }
-// chaque partie décide elle-même si elle entre dans les calculs (m.off === true : exclue)
-const compte=m=>!m.off;
-const horsClt=()=>DB.matches.filter(m=>!compte(m)).length;
+// chaque partie décide elle-même si elle entre dans les calculs
+// m.off === true : partie jouée mais exclue · m.plan === true : partie prévue, pas encore jouée
+const prevue=m=>m.plan===true;
+const compte=m=>!m.off&&!prevue(m);
+const horsClt=()=>DB.matches.filter(m=>m.off&&!prevue(m)).length;
+const prevues=()=>DB.matches.filter(prevue);
+// parties prévues d'une série
+const serieP=s=>DB.matches.filter(m=>m.seriesId===s.id&&prevue(m)).length;
 function sortedMatches(y){
   return DB.matches.filter(m=>compte(m)&&(!y||seasonOf(m)===String(y)))
     .slice().sort((a,b)=> a.date===b.date ? (a.seq||0)-(b.seq||0) : a.date<b.date?-1:1);
@@ -633,7 +652,7 @@ const histYear=y=>(DB.histYears||[]).find(x=>String(x.year)===String(y))||null;
 function serieSeason(s){
   if(s.season) return String(s.season);
   if(s.hist) return (s.end||s.start||'').slice(0,4)||null;
-  const m=DB.matches.find(m=>m.seriesId===s.id); return m?seasonOf(m):null;
+  const m=DB.matches.find(m=>m.seriesId===s.id&&!prevue(m)); return m?seasonOf(m):null;
 }
 function serieInYear(s,y){
   if(s.hist) return serieSeason(s)===String(y);
@@ -692,7 +711,7 @@ function duelStats(scopeYear){
     }});
   return out;
 }
-const years=()=>{const s=new Set(DB.matches.map(m=>seasonOf(m)));
+const years=()=>{const s=new Set(DB.matches.filter(m=>!prevue(m)).map(m=>seasonOf(m)));
   DB.series.forEach(x=>{const y=serieSeason(x); if(y)s.add(y);});
   (DB.histYears||[]).forEach(h=>s.add(String(h.year)));
   s.add(String(new Date().getFullYear()));return [...s].sort().reverse();};
@@ -755,7 +774,8 @@ const seriesWonBy=pid=>seriesSorted().filter(s=>serieWinner(s)===pid);
 
 /* ---------- rendu ---------- */
 function render(){
-  $('#hsub').textContent = DB.matches.length? '· '+DB.matches.length+' partie'+(DB.matches.length>1?'s':'') : '';
+  const nJ=DB.matches.filter(m=>!prevue(m)).length, nP=prevues().length;
+  $('#hsub').textContent = (nJ? '· '+nJ+' partie'+(nJ>1?'s':'') : '')+(nP?' · '+nP+' prévue'+(nP>1?'s':''):'');
   const ys=years(); if(!ys.includes(String(year))) year=+ys[0];
   $('#year').innerHTML=ys.map(y=>`<option ${y==year?'selected':''}>${y}</option>`).join('');
   ({rank:rRank,palm:rPalm,stat:rStat,match:rMatch,serie:rSerie,game:rGame,player:rPlayer,set:rSet})[view]();
@@ -1089,26 +1109,62 @@ function rMatch(){
     .map(g=>`<option value="${g.id}">${esc(g.name)} (${g.weight?(+g.weight).toFixed(2):'?'})</option>`).join('');
   $('#mGame').value=draft.gameId||''; updW();
   $('#mCount').checked = draft.off!==true;
+  $('#mPlan').checked = draft.plan===true;
+  planUI();
   drawChips(); drawOrder();
-  $('#mFormTitle').textContent=draft.id?'Modifier la partie':'Nouvelle partie';
-  const ms=DB.matches.slice().sort((a,b)=> a.date===b.date?(b.seq||0)-(a.seq||0) : a.date<b.date?1:-1);
+  $('#mFormTitle').textContent= draft.id ? (draft.plan?'Modifier la partie prévue':'Modifier la partie')
+    : (draft.plan?'Partie à venir':'Nouvelle partie');
+  rPlan();
+  // jours du plus récent au plus ancien ; à l'intérieur d'un jour, ordre réel des parties
+  const ms=DB.matches.filter(m=>!prevue(m)).slice()
+    .sort((a,b)=> a.date===b.date ? (a.seq||0)-(b.seq||0) : a.date<b.date?1:-1);
+  const nDay={}, iDay={}; ms.forEach(m=>{nDay[m.date]=(nDay[m.date]||0)+1;});
   const MD=engine(null).md;
   $('#mList').innerHTML= !ms.length?'<div class="empty">Aucune partie enregistrée.</div>' : ms.map(m=>{
+    const k=(iDay[m.date]=(iDay[m.date]||0)+1), nd=nDay[m.date];
     const s=DB.series.find(x=>x.id===m.seriesId), g=gById(m.gameId);
     const ord=m.results.slice().sort((a,b)=>a.rank-b.rank);
     const pts=m.off?null:matchPts(m), el=m.off?null:MD[m.id];
     const ex=r=>m.results.filter(x=>x.rank===r).length>1;
     return `<div class="item"><div class="g">
      <div class="t">${esc(g.name)} <span class="tag">${g.weight?(+g.weight).toFixed(2):'?'}</span>${s?`<span class="tag">${esc(s.name)}</span>`:'<span class="tag">hors série</span>'}${m.off?'<span class="tag warn">hors classement</span>':(!inYearCount(m)?'<span class="tag warn">hors Meeple d\'Or</span>':'')}</div>
-     <div class="s">${fdate(m.date)} · ${ord.length} joueurs</div>
+     <div class="s">${fdate(m.date)} · ${ord.length} joueurs${nd>1?` · ${k}<sup>${k===1?'re':'e'}</sup> partie du jour`:''}</div>
      <table class="mt"><tbody>${ord.map(r=>{ const e=el&&el[r.playerId];
        return `<tr><td class="k ${r.rank===1?'w':''}">${r.rank}${ex(r.rank)?'=':''}</td>
          <td class="nm"><span style="color:${pColor(r.playerId)}">●</span> ${esc(pName(r.playerId))}</td>
          <td class="num" ${pts&&!inYearCount(m)?'style="color:var(--dim);text-decoration:line-through"':''}>${pts?`${pts[r.playerId].toFixed(1)}<span class="u"> pts</span>`:'<span class="u">—</span>'}</td>
          <td class="num ${e?(e.d>.05?'up':e.d<-.05?'down':'flat'):''}">${e?`${e.d>=0?'+':''}${e.d.toFixed(1)}`:'<span class="u">—</span>'}</td>
          <td class="num u">${e?Math.round(e.after):''}</td></tr>`;}).join('')}</tbody></table></div>
+     <div class="acts">
+     ${nd>1?`<button class="mini" data-mu="${m.id}" ${k===1?'disabled style="opacity:.3"':''} title="Jouée plus tôt dans la journée">↑</button>
+     <button class="mini" data-mdn="${m.id}" ${k===nd?'disabled style="opacity:.3"':''} title="Jouée plus tard dans la journée">↓</button>`:''}
      <button class="mini ${m.off?'off':''}" data-om="${m.id}" title="${m.off?'Réintégrer aux classements':'Exclure des classements'}">⊘</button>
-     <button class="mini" data-em="${m.id}">✎</button><button class="mini" data-dm="${m.id}">✕</button></div>`;}).join('');
+     <button class="mini" data-em="${m.id}" title="Modifier">✎</button>
+     <button class="mini" data-dm="${m.id}" title="Supprimer">✕</button></div></div>`;}).join('');
+}
+// affichage / masquage des champs selon l'état « prévue »
+function planUI(){
+  const p=$('#mPlan').checked;
+  $('#mCountWrap').style.display= p?'none':'';
+  $('#mPartLab').textContent= p?'Participants prévus — l\'ordre sera saisi après la partie':'Participants — touchez dans l\'ordre d\'arrivée';
+  $('#mSave').textContent= p?'Enregistrer la partie prévue':'Enregistrer';
+}
+// liste des parties prévues, par date croissante
+function rPlan(){
+  const ps=prevues().slice().sort((a,b)=> a.date===b.date?(a.seq||0)-(b.seq||0) : a.date<b.date?-1:1);
+  $('#planCard').style.display= ps.length?'':'none';
+  if(!ps.length) return;
+  $('#planHint').innerHTML=`${ps.length===1?'Cette partie n\'entre':'Ces parties n\'entrent'} dans aucun calcul : ni Elo, ni points, ni statistiques.
+   Touchez <b>▶</b> le soir venu pour saisir l'ordre d'arrivée — la partie prend alors sa place dans l'histoire, à la date et au rang que vous lui donnez.`;
+  $('#planList').innerHTML= ps.map(m=>{
+    const s=DB.series.find(x=>x.id===m.seriesId), g=gById(m.gameId);
+    return `<div class="item plan"><div class="g">
+     <div class="t">${esc(g.name)} <span class="tag">${g.weight?(+g.weight).toFixed(2):'?'}</span>${s?`<span class="tag">${esc(s.name)}</span>`:'<span class="tag">hors série</span>'}<span class="tag acc">prévue</span></div>
+     <div class="s">${fdate(m.date)} · ${m.results.map(r=>`<span style="color:${pColor(r.playerId)}">●</span> ${esc(pName(r.playerId))}`).join(' · ')}</div></div>
+     <div class="acts">
+     <button class="mini go" data-pp="${m.id}" title="Saisir le résultat">▶</button>
+     <button class="mini" data-em="${m.id}" title="Modifier">✎</button>
+     <button class="mini" data-dm="${m.id}" title="Supprimer">✕</button></div></div>`;}).join('');
 }
 function drawChips(){
   $('#mChips').innerHTML= !DB.players.length?'<div class="empty">Ajoutez des joueurs d\'abord.</div>' :
@@ -1117,11 +1173,15 @@ function drawChips(){
 function updW(){const g=DB.games.find(x=>x.id===$('#mGame').value);
   $('#mWeight').textContent=g?(g.weight?'· poids '+(+g.weight).toFixed(2):'· poids manquant → '+DB.settings.ref):'';}
 function drawOrder(){
-  const o=draft.order; $('#mHint').style.display=o.length?'block':'none';
+  const o=draft.order, pl=draft.plan===true;
+  $('#mHint').style.display=o.length?'block':'none';
+  $('#mHint').innerHTML= pl?'Le classement se saisira après la partie : ici l\'ordre des joueurs n\'a aucune importance.'
+    :'↑↓ pour corriger l\'ordre · <b>=</b> pour un ex æquo avec le joueur au-dessus';
   let rk=0;
   $('#mOrder').innerHTML=o.map((e,i)=>{
     if(i===0)rk=1; else if(!e.tie)rk=i+1;
     const r=rk;
+    if(pl) return `<li><span class="rk">•</span><span class="nm">${esc(pName(e.pid))}</span></li>`;
     return `<li class="${r===1?'first':''}"><span class="rk">${r}</span><span class="nm">${esc(pName(e.pid))}</span>
      <button class="mini ${e.tie?'sel':''}" data-tie="${i}" ${i===0?'disabled style="opacity:.3"':''}>=</button>
      <button class="mini" data-up="${i}" ${i===0?'disabled style="opacity:.3"':''}>↑</button>
@@ -1133,7 +1193,7 @@ function ranksFromOrder(){let rk=1,out=[];
 // date de référence d'une série pour le tri : sa dernière partie, sinon sa date de fin
 // ou de début saisie, sinon rien — une série encore vide reste en tête
 function serieLast(s){
-  const d=DB.matches.filter(m=>m.seriesId===s.id).map(m=>m.date).sort();
+  const d=DB.matches.filter(m=>m.seriesId===s.id&&!prevue(m)).map(m=>m.date).sort();
   return d.length? d[d.length-1] : (s.end||s.start||(s.season?s.season+'-12-31':'9999-12-31'));
 }
 const seriesSorted=()=>DB.series.slice().sort((a,b)=>{
@@ -1147,7 +1207,7 @@ function seriePoids(s){
   return ms.reduce((a,m)=>a+gw(gById(m.gameId)),0)/ms.length;
 }
 function serieDates(s){
-  const d=DB.matches.filter(m=>m.seriesId===s.id).map(m=>m.date).sort();
+  const d=DB.matches.filter(m=>m.seriesId===s.id&&!prevue(m)).map(m=>m.date).sort();
   const a=s.start||d[0], b=s.end||d[d.length-1];
   if(!a)return '';
   return a===b? 'le '+fdate(a) : 'du '+fdate(a)+' au '+fdate(b);
@@ -1244,7 +1304,7 @@ function rSerie(){
     return `<div class="card"><h2 style="display:flex;align-items:center;gap:6px">${esc(s.name)}
      <span class="tag ${s.status}">${s.status==='open'?'en cours':'clôturée'}</span>${s.noYear?'<span class="tag warn">hors Meeple d\'Or</span>':''}
      <span style="flex:1"></span><button class="mini" data-es="${s.id}">✎</button></h2>
-     <div class="hint" style="margin:0 0 8px">${n} partie${n>1?'s':''} · ${seriePoids(s)!==null?`poids moyen <b>${seriePoids(s).toFixed(2)}</b> · `:''}${s.best?'meilleurs '+s.best+' résultats':'toutes les parties comptées'}${serieDates(s)?' · '+serieDates(s):''}${s.season?' · <b>saison '+s.season+'</b>':''}</div>
+     <div class="hint" style="margin:0 0 8px">${n} partie${n>1?'s':''}${serieP(s)?` <span class="tag acc">${serieP(s)} prévue${serieP(s)>1?'s':''}</span>`:''} · ${seriePoids(s)!==null?`poids moyen <b>${seriePoids(s).toFixed(2)}</b> · `:''}${s.best?'meilleurs '+s.best+' résultats':'toutes les parties comptées'}${serieDates(s)?' · '+serieDates(s):''}${s.season?' · <b>saison '+s.season+'</b>':''}</div>
      ${r.length?`<table><thead><tr><th class="pos"></th><th>Joueur</th><th class="num">Total</th><th class="num">Retenues</th></tr></thead><tbody>`+
       r.map((x,i)=>`<tr class="${i===0?'p1':''}"><td class="pos">${i+1}</td><td>${esc(pName(x.id))}${i===0?' <span class="tag w">🏆</span>':''}</td>
        <td class="num elo">${Math.round(x.total)}</td><td class="num" style="color:var(--muted)">${x.kept}/${x.played}</td></tr>`).join('')+'</tbody></table>'
@@ -1260,7 +1320,7 @@ function rGame(){
   let gs=DB.games.slice().sort((a,b)=>a.name.localeCompare(b.name));
   if(gFilter==='nw')gs=gs.filter(g=>!(+g.weight>0));
   $('#gList').innerHTML= !gs.length?'<div class="empty">Aucun jeu.</div>' : gs.map(g=>{
-    const n=DB.matches.filter(m=>m.gameId===g.id).length, h=+g.histN||0;
+    const n=DB.matches.filter(m=>m.gameId===g.id&&!prevue(m)).length, h=+g.histN||0;
     if(gEdit===g.id) return `<div class="item" style="display:block">
       <div class="row"><div style="flex:2"><label>Nom</label><input type="text" id="geName" value="${esc(g.name)}"></div>
         <div><label>Poids BGG</label><input type="number" id="geW" min="1" max="5" step="0.01" value="${g.weight||''}" placeholder="inconnu"></div></div>
@@ -1357,6 +1417,7 @@ function audit(){
    <tr><td>Périmètre</td><td class="num">toutes les parties jusqu'à fin ${year}</td></tr>
    <tr><td>Parties prises en compte</td><td class="num elo">${ms.length}</td></tr>
    ${horsClt()?`<tr><td style="color:var(--red)">Amicales exclues (toutes saisons)</td><td class="num" style="color:var(--red)">${horsClt()}</td></tr>`:''}
+   ${prevues().length?`<tr><td style="color:var(--acc)">Parties prévues (non jouées)</td><td class="num" style="color:var(--acc)">${prevues().length}</td></tr>`:''}
    <tr><td>Joueurs classés (ayant joué)</td><td class="num elo">${n}</td></tr>
    <tr><td>Elo de départ</td><td class="num elo">${DB.settings.start}</td></tr>
    <tr><td>Somme attendue</td><td class="num">${exp.toFixed(2)}</td></tr>
@@ -1443,28 +1504,54 @@ $('#mOrder').onclick=e=>{const b=e.target.closest('button');if(!b)return;const o
 $('#mGame').onchange=()=>{draft.gameId=$('#mGame').value; updW();};
 $('#mSerie').onchange=()=>{draft.serieId=$('#mSerie').value;};
 $('#mCount').onchange=()=>{draft.off=!$('#mCount').checked;};
+$('#mPlan').onchange=()=>{draft.plan=$('#mPlan').checked; planUI(); drawOrder();};
 $('#mSave').onclick=()=>{
-  const gid=$('#mGame').value,date=$('#mDate').value;
+  const gid=$('#mGame').value,date=$('#mDate').value,plan=$('#mPlan').checked;
   if(!gid)return toast('Choisissez un jeu');
   if(!date)return toast('Choisissez une date');
   if(draft.order.length<2)return toast('Au moins 2 participants');
   const res=ranksFromOrder();
-  const off=!$('#mCount').checked;
-  if(draft.id){const m=DB.matches.find(x=>x.id===draft.id);Object.assign(m,{date,gameId:gid,seriesId:$('#mSerie').value||null,results:res,off});}
-  else DB.matches.push({id:uid(),seq:Date.now(),date,gameId:gid,seriesId:$('#mSerie').value||null,results:res,off});
-  save();draft={id:null,order:[],serieId:$('#mSerie').value,gameId:gid,off:false};rMatch();
-  toast(off?'Partie enregistrée, hors classement':'Partie enregistrée');};
+  const off=!plan&&!$('#mCount').checked;
+  if(draft.id){const m=DB.matches.find(x=>x.id===draft.id);
+    // une partie prévue qui devient jouée se range à la fin de sa journée
+    if(m.plan&&!plan) m.seq=Date.now();
+    Object.assign(m,{date,gameId:gid,seriesId:$('#mSerie').value||null,results:res,off,plan});}
+  else DB.matches.push({id:uid(),seq:Date.now(),date,gameId:gid,seriesId:$('#mSerie').value||null,results:res,off,plan});
+  save();draft={id:null,order:[],serieId:$('#mSerie').value,gameId:gid,off:false,plan};rMatch();
+  toast(plan?'Partie prévue enregistrée':(off?'Partie enregistrée, hors classement':'Partie enregistrée'));};
 $('#mReset').onclick=()=>{ if(draft.id) $('#mDate').value=new Date().toISOString().slice(0,10);
-  draft={id:null,order:[],off:false}; rMatch(); };
-$('#mList').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  draft={id:null,order:[],off:false,plan:false}; rMatch(); };
+// déplace une partie dans sa journée : la numérotation du jour est refaite puis les deux voisines échangées
+function dayMove(id,dir){
+  const m=DB.matches.find(x=>x.id===id); if(!m) return;
+  const day=DB.matches.filter(x=>!prevue(x)&&x.date===m.date).sort((a,b)=>(a.seq||0)-(b.seq||0));
+  day.forEach((x,i)=>{x.seq=i+1;});
+  const i=day.indexOf(m), j=i+dir; if(j<0||j>=day.length) return;
+  const t=day[i].seq; day[i].seq=day[j].seq; day[j].seq=t;
+  save(); render(); toast('Ordre de la journée modifié');
+}
+// charge une partie dans le formulaire ; res=true pour saisir le résultat d'une partie prévue
+function editMatch(id,res){
+  const m=DB.matches.find(x=>x.id===id); if(!m) return;
+  draft={id:m.id,gameId:m.gameId,serieId:m.seriesId||'',off:m.off===true,plan:res?false:m.plan===true,
+    order:m.results.slice().sort((a,b)=>a.rank-b.rank).map((r,i,arr)=>({pid:r.playerId,tie:i>0&&arr[i-1].rank===r.rank}))};
+  $('#mDate').value=m.date; rMatch(); window.scrollTo(0,0);
+  if(res) toast('Touchez les joueurs dans l\'ordre d\'arrivée');
+}
+function listClick(e){const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.mu!==undefined){dayMove(b.dataset.mu,-1);return;}
+  if(b.dataset.mdn!==undefined){dayMove(b.dataset.mdn,1);return;}
+  if(b.dataset.pp){editMatch(b.dataset.pp,true);return;}
   if(b.dataset.om){const m=DB.matches.find(x=>x.id===b.dataset.om);m.off=!m.off;save();
     if(draft.id===m.id) draft.off=m.off; rMatch();
     toast(m.off?'Partie exclue des classements':'Partie réintégrée aux classements');}
-  if(b.dataset.dm){if(confirm('Supprimer cette partie ?')){DB.matches=DB.matches.filter(m=>m.id!==b.dataset.dm);
-    if(draft.id===b.dataset.dm) draft={id:null,order:[],off:false}; save();rMatch();}}
-  if(b.dataset.em){const m=DB.matches.find(x=>x.id===b.dataset.em);
-    draft={id:m.id,gameId:m.gameId,serieId:m.seriesId||'',off:m.off===true,order:m.results.slice().sort((a,b)=>a.rank-b.rank).map((r,i,arr)=>({pid:r.playerId,tie:i>0&&arr[i-1].rank===r.rank}))};
-    $('#mDate').value=m.date;rMatch();window.scrollTo(0,0);}};
+  if(b.dataset.dm){const m=DB.matches.find(x=>x.id===b.dataset.dm);
+    if(confirm(m&&prevue(m)?'Supprimer cette partie prévue ?':'Supprimer cette partie ?')){
+      DB.matches=DB.matches.filter(x=>x.id!==b.dataset.dm);
+      if(draft.id===b.dataset.dm) draft={id:null,order:[],off:false,plan:false}; save();rMatch();}}
+  if(b.dataset.em) editMatch(b.dataset.em,false);}
+$('#mList').onclick=listClick;
+$('#planList').onclick=listClick;
 $('#histCard').oninput=e=>{ const t=e.target, id=t.dataset.hpw||t.dataset.hpg; if(!id) return;
   hForm.ps=hForm.ps||{}; const x=hForm.ps[id]=hForm.ps[id]||{w:null,g:null};
   const v=t.value===''?null:Math.max(0,Math.round(+t.value));
@@ -1553,7 +1640,7 @@ $('#gList').onclick=e=>{const b=e.target.closest('button');if(!b)return;
     const n=$('#geName').value.trim(); if(!n) return toast('Nom requis');
     const wv=parseFloat(String($('#geW').value).replace(',','.'));
     const h=$('#geH').value===''?0:Math.max(0,Math.round(+$('#geH').value)), f=$('#geF').value||null;
-    const appFirst=DB.matches.filter(m=>m.gameId===g.id).map(m=>m.date).sort()[0];
+    const appFirst=DB.matches.filter(m=>m.gameId===g.id&&!prevue(m)).map(m=>m.date).sort()[0];
     if(f&&appFirst&&f>appFirst) return toast('La 1re partie ne peut pas être après la 1re partie saisie ('+fdate(appFirst)+')');
     g.name=n; g.weight=(wv>=1&&wv<=5)?wv:null; g.histN=h||null; g.histFirst=f;
     gEdit=null; save(); rGame(); toast('Jeu modifié');}};

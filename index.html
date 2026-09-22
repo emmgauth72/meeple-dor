@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meeple d'Or — Classement</title>
+<style>
+:root{
+  --bg:#0d0e11; --surface:#15171c; --surface2:#1b1e25; --line:#262a33;
+  --txt:#e5e7ec; --muted:#8a909c; --dim:#5d636e;
+  --acc:#5b9cf6; --gold:#e8b13c; --green:#3ecf8e; --red:#e5645f;
+  --r:8px; --fs:13px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font:var(--fs)/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding-bottom:40px}
+h1,h2,h3{margin:0;font-weight:600}
+header{position:sticky;top:0;z-index:20;background:rgba(13,14,17,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 14px}
+.hrow{display:flex;align-items:center;gap:8px}
+h1{font-size:14px;letter-spacing:.2px;flex:1}
+h1 span{color:var(--dim);font-weight:400;font-size:11px}
+nav{display:flex;gap:2px;overflow-x:auto;margin-top:9px;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:0 0 auto;background:none;border:0;color:var(--muted);font-size:12px;font-family:inherit;padding:6px 10px;border-radius:6px;cursor:pointer}
+nav button.on{background:var(--surface2);color:var(--txt)}
+main{padding:14px;max-width:760px;margin:0 auto}
+section{display:none}section.on{display:block}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;margin-bottom:12px}
+.card h2{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:10px}
+label{display:block;font-size:11px;color:var(--muted);margin:0 0 4px}
+input,select,textarea,button{font-family:inherit;font-size:var(--fs)}
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;background:var(--surface2);border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:8px 9px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--acc)}
+textarea{min-height:70px;resize:vertical}
+.row{display:flex;gap:8px;margin-bottom:10px}
+.row>div{flex:1;min-width:0}
+.btn{background:var(--acc);color:#04101f;border:0;border-radius:6px;padding:9px 13px;font-weight:600;cursor:pointer}
+.btn.sec{background:var(--surface2);color:var(--txt);border:1px solid var(--line);font-weight:500}
+.btn.danger{background:none;color:var(--red);border:1px solid #3a2626}
+.btn:active{opacity:.75}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.hbtn{background:var(--surface2);border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:5px 9px;cursor:pointer;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;color:var(--muted);font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;padding:0 5px 6px;border-bottom:1px solid var(--line)}
+td{padding:7px 5px;border-bottom:1px solid #1d2028}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.pos{color:var(--dim);width:20px}
+.p1 .pos{color:var(--gold);font-weight:700}
+.elo{font-weight:600;font-variant-numeric:tabular-nums}
+.up{color:var(--green)}.down{color:var(--red)}.flat{color:var(--dim)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--surface2);border:1px solid var(--line);color:var(--muted);padding:6px 10px;border-radius:14px;cursor:pointer;font-size:12px;user-select:none}
+.chip.on{background:#16324f;border-color:var(--acc);color:#cfe2ff}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{background:var(--surface2);border:0;color:var(--muted);padding:5px 11px;font-size:11.5px;cursor:pointer}
+.seg button.on{background:#16324f;color:#cfe2ff}
+.ord{list-style:none;margin:10px 0 0;padding:0}
+.ord li{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin-bottom:5px}
+.ord .rk{width:26px;height:26px;flex:0 0 26px;border-radius:50%;background:#20242d;color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.ord li.first .rk{background:var(--gold);color:#241a00}
+.ord .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mini{background:#20242d;border:1px solid var(--line);color:var(--muted);border-radius:5px;min-width:28px;height:27px;line-height:1;cursor:pointer;padding:0 5px}
+.mini.on{background:#3a2f12;border-color:#5c4a1c;color:var(--gold)}
+.mini.sel{background:#16324f;border-color:var(--acc);color:#cfe2ff}
+.mini.off{background:#3a2626;border-color:#5c2f2f;color:var(--red)}
+.item{border-bottom:1px solid #1d2028;padding:9px 0;display:flex;gap:8px;align-items:flex-start}
+.item:last-child{border-bottom:0}
+.item .g{flex:1;min-width:0}
+.item .t{font-weight:600;font-size:12.5px}
+.item .s{color:var(--muted);font-size:11px;margin-top:2px}
+.tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;background:var(--surface2);border:1px solid var(--line);color:var(--muted);margin-left:5px;vertical-align:1px}
+.tag.open{color:var(--green);border-color:#1e402f}
+.tag.closed{color:var(--dim)}
+.tag.w{color:var(--gold);border-color:#3d3016}
+.tag.warn{color:var(--red);border-color:#3a2626}
+.empty{color:var(--dim);font-size:12px;padding:6px 0;text-align:center}
+.hint{color:var(--dim);font-size:11px;margin-top:6px;line-height:1.5}
+.sep{height:1px;background:var(--line);margin:12px 0}
+.kpi{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.kpi div{flex:1;min-width:76px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:9px 10px}
+.kpi b{display:block;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+.kpi span{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+svg.chart{width:100%;height:auto;display:block;overflow:visible}
+.lg{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;font-size:11px;color:var(--muted)}
+.lg i{display:inline-block;width:9px;height:2.5px;border-radius:2px;margin-right:4px;vertical-align:3px}
+.duel{margin-bottom:11px}
+.duel .dl{display:flex;font-size:11.5px;margin-bottom:3px;align-items:baseline}
+.duel .dl .a{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.duel .dl .b{flex:1;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.duel .dl .c{color:var(--dim);font-size:10px;padding:0 6px;font-variant-numeric:tabular-nums}
+.bar{display:flex;height:16px;border-radius:4px;overflow:hidden;background:#20242d}
+.bar span{display:flex;align-items:center;font-size:9.5px;font-weight:700;color:rgba(0,0,0,.65);padding:0 4px;min-width:0;overflow:hidden}
+.bar span.r{justify-content:flex-end}
+.bar span.n{background:#343a45;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--line);padding:9px 15px;border-radius:20px;font-size:12px;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s;max-width:88%;text-align:center}
+.toast.on{opacity:1}
+details summary{cursor:pointer;color:var(--muted);font-size:11.5px;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary:before{content:"▸ ";color:var(--dim)}
+details[open] summary:before{content:"▾ "}
+.chk{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--txt);margin:2px 0 0}
+.chk input{width:18px;height:18px;flex:0 0 18px;accent-color:var(--acc);margin:0;cursor:pointer}
+.ord input.hps{width:52px;flex:0 0 52px;padding:5px 6px;font-size:12px;text-align:center}
+.ord li.hps-h{background:none;border:1px solid transparent;padding:0 8px;margin:0 0 2px;font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.ord li.hps-h span.hps{width:52px;flex:0 0 52px;text-align:center}
+.ord li.hps-h .rk{background:none}
+.sx{font-size:11.5px}
+.sx-r{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:center;padding:5px 0}
+.sx-h{font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);border-bottom:1px solid var(--line);padding:0 0 5px}
+.sx-n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sx-n .tag{font-size:8.5px;padding:0 4px}
+.sx-b{position:relative;display:flex;align-items:center;gap:6px;height:14px}
+.sx-b .trk{flex:1;min-width:0;height:9px;position:relative}
+.sx-b i{position:absolute;left:0;top:0;height:9px;border-radius:0 4px 4px 0;min-width:2px}
+.sx-b em{font-style:normal;font-variant-numeric:tabular-nums;color:var(--txt);font-size:11px;width:28px;text-align:right;flex:0 0 28px}
+.sx-ax{border-top:1px solid var(--line);padding-top:3px;font-size:9px;color:var(--dim)}
+.sx-ax>div{display:flex;justify-content:space-between;padding-right:34px}
+.sx-lg{font-size:9px;color:var(--dim);padding-top:6px}
+.sx-lg>div:not(:first-child){padding-right:34px}
+.sx-lg i{display:block;height:5px;border-radius:3px}
+.sx-lg span{display:flex;justify-content:space-between;margin-top:2px}
+.sx-lg b{font-weight:500;color:var(--muted)}
+.hx{font-size:9px;color:var(--dim);font-weight:400;line-height:1.1}
+table.mt{margin-top:6px;font-size:11.5px;width:100%}
+table.mt td{padding:3px 5px;border-bottom:1px solid #1b1e25}
+table.mt tr:last-child td{border-bottom:0}
+table.mt td.k{width:20px;color:var(--dim);font-variant-numeric:tabular-nums}
+table.mt td.k.w{color:var(--gold);font-weight:700}
+table.mt td.nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px}
+table.mt .u{color:var(--dim);font-size:10px}
+table.mt td.num:nth-child(4){width:48px}
+table.mt td.num:nth-child(5){width:38px}
+tr.elo-sum td{border-top:1px solid var(--line);border-bottom:0;font-weight:600;padding-top:8px}
+#roBar{display:none}
+body.ro #roBar{display:block;font-size:10.5px;color:var(--muted);margin-top:6px}
+body.ro nav button[data-v="game"], body.ro nav button[data-v="player"],
+body.ro #hSave, body.ro #hPub,
+body.ro #v-match > .card:first-child, body.ro #mList .mini,
+body.ro #v-serie > .card:first-child, body.ro #histCard,
+body.ro #sList .mini, body.ro #sList .btns, body.ro #sList .sep,
+body.ro #capReset, body.ro [data-hy], body.ro #cSave, body.ro #cardData, body.ro #cardPub { display:none!important }
+body.ro #v-set input, body.ro #v-set select, body.ro #capIn { pointer-events:none; opacity:.75 }
+tr.pp-row{cursor:pointer}
+tr.pp-row:hover td{background:rgba(255,255,255,.02)}
+.chev{display:inline-block;width:12px;color:var(--dim);font-size:10px}
+tr.det>td{padding:2px 0 10px 20px;border-bottom:1px solid #1d2028}
+table.dt{font-size:11.5px;background:var(--surface2);border-radius:6px;overflow:hidden}
+table.dt th{font-size:9.5px;padding:6px 6px 4px;border-bottom:1px solid var(--line)}
+table.dt td{padding:4px 6px;border-bottom:1px solid #20242c}
+table.dt td.k{color:var(--dim);width:18px}
+table.dt td.gm{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+table.dt tr.off td{color:var(--dim);text-decoration:line-through;text-decoration-color:rgba(138,144,156,.4)}
+table.dt tr.miss td{color:var(--gold);font-style:italic}
+table.dt tr.sum td{font-weight:600;border-top:1px solid var(--line);color:var(--txt)}
+table.dt tr.sep2 td{font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--dim);padding-top:9px}
+tr.nq td{opacity:.45}
+tr.nq td.elo{font-weight:500}
+.sw{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.sw button{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
+.sw button.on{border-color:var(--txt);box-shadow:0 0 0 2px var(--surface),0 0 0 3px var(--txt)}
+.sw-cust{position:relative;width:30px;height:30px;margin:0;cursor:pointer}
+.sw-cust input{position:absolute;inset:0;opacity:0;width:100%;height:100%;padding:0;border:0;cursor:pointer}
+.sw-cust span{display:block;width:30px;height:30px;border-radius:50%;border:2px dashed var(--muted);pointer-events:none}
+code{background:var(--surface2);padding:1px 4px;border-radius:3px;font-size:11px}
+#printArea{display:none}
+@media print{
+  header,main,.toast{display:none!important}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{size:A4 portrait;margin:11mm 11mm 10mm}
+  /* le système graphique de l'appli, transposé sur fond clair */
+  :root{--bg:#fff;--surface:#fff;--surface2:#f4f5f7;--line:#e4e7ec;
+    --txt:#16181d;--muted:#6b7280;--dim:#9aa1ab;--acc:#2f6fdb;--gold:#b8862b}
+  html,body{background:#fff!important;padding:0!important;margin:0!important}
+  #printArea{display:block;color:var(--txt);font:10px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+
+  .p-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:12px}
+  .p-t{font-size:22px;font-weight:700;letter-spacing:-.4px;line-height:1.05}
+  .p-s{font-size:11px;color:var(--gold);font-weight:600;letter-spacing:1.6px;text-transform:uppercase;margin-top:3px}
+  .p-d{font-size:9px;color:var(--muted);text-align:right}
+
+  .p-kpi{display:flex;gap:7px;margin-bottom:9px}
+  .p-kpi div{flex:1;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--surface)}
+  .p-kpi b{display:block;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+  .p-kpi span{color:var(--muted);font-size:8px;text-transform:uppercase;letter-spacing:.6px}
+
+  .p-card{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:9px;
+    background:var(--surface);break-inside:avoid}
+  .p-card h3{font-size:8.5px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);
+    font-weight:600;margin:0 0 8px}
+  .p-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:0}
+  .p-grid .p-card{margin-bottom:9px}
+
+  .p-champ{border-color:#e7d3a3;background:#fdf8ec}
+  .p-champ .nm{font-size:17px;font-weight:700;margin:1px 0 3px}
+  .p-champ .nm small{font-size:10px;font-weight:400;color:var(--muted)}
+  .p-champ .ln{font-size:9px;color:var(--muted)}
+  .p-champ .dv{color:var(--gold);font-weight:600}
+
+  #printArea table{width:100%;border-collapse:collapse;font-size:9.5px}
+  #printArea th{text-align:left;color:var(--muted);font-weight:500;font-size:7.5px;text-transform:uppercase;
+    letter-spacing:.6px;padding:0 5px 5px;border-bottom:1px solid var(--line)}
+  #printArea td{padding:5px 5px;border-bottom:1px solid #eef0f3;color:var(--txt)}
+  #printArea tr:last-child td{border-bottom:0}
+  #printArea .num{text-align:right;font-variant-numeric:tabular-nums}
+  #printArea .rk{width:14px;color:var(--dim);font-size:8.5px}
+  #printArea tr.top .rk{color:var(--gold);font-weight:700}
+  #printArea tr.top td.v{font-weight:700}
+  #printArea tr.nq td{opacity:.5}
+  #printArea .b{font-weight:600}
+  .p-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:0}
+  .p-tag{display:inline-block;font-size:7px;padding:1px 5px;border-radius:4px;border:1px solid var(--line);
+    color:var(--muted);margin-left:5px;vertical-align:1px;text-transform:none}
+  .p-tag.w{color:var(--gold);border-color:#ecd9a8}
+  .p-note{font-size:8px;color:var(--dim);margin-top:6px;line-height:1.5}
+
+  /* composants réutilisés de l'appli */
+  #printArea svg.chart{height:auto}
+  #printArea svg.chart line{stroke:#eceef2}
+  #printArea svg.chart line.ref{stroke:#9aa1ab}
+  #printArea svg.chart text[font-weight="600"]{fill:#4b5563}
+  #printArea .lg{margin-top:6px;font-size:8.5px}
+  #printArea .duel{margin-bottom:8px}
+  #printArea .duel .dl{font-size:9px}
+  #printArea .bar{height:13px;background:#eef0f3}
+  #printArea .bar span{font-size:8px;color:rgba(0,0,0,.7)}
+  #printArea .bar span.n{background:#d5d9e0}
+
+  .p-sec{font-size:8.5px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);font-weight:600;
+    margin:4px 0 7px 2px;break-after:avoid}
+  .p-serie .sh{font-size:11.5px;font-weight:600;margin-bottom:2px}
+  .p-serie .sm{font-size:8px;color:var(--muted);margin-bottom:6px;line-height:1.5}
+  .p-foot{margin-top:6px;font-size:7.5px;color:var(--dim);line-height:1.6}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hrow">
+    <span id="hLogo" style="display:flex;flex:0 0 auto"></span>
+    <h1>Meeple d'Or <span id="hsub"></span></h1>
+    <button class="hbtn" id="hPrint" title="Synthèse imprimable / PDF">🖨</button>
+    <button class="hbtn" id="hPub" title="Publier en ligne" style="display:none">☁</button>
+    <button class="hbtn" id="hSave" title="Exporter une sauvegarde">⤓</button>
+    <select id="year" style="width:auto;padding:5px 7px;font-size:12px"></select>
+  </div>
+  <nav>
+    <button data-v="rank" class="on">Classement</button>
+    <button data-v="palm">Palmarès</button>
+    <button data-v="stat">Stats</button>
+    <button data-v="match">Parties</button>
+    <button data-v="serie">Séries</button>
+    <button data-v="game">Jeux</button>
+    <button data-v="player">Joueurs</button>
+    <button data-v="set">Réglages</button>
+  </nav>
+  <div id="roBar"></div>
+</header>
+
+<main>
+
+<!-- CLASSEMENT -->
+<section id="v-rank" class="on">
+  <div class="kpi" id="kpi"></div>
+  <div class="card" id="titleBox"></div>
+  <div class="card calc">
+    <h2>Classement de la saison</h2>
+    <div id="ptTable"></div>
+  </div>
+  <div class="card calc">
+    <h2>Cote Elo de référence — fin <span id="rkYear"></span></h2>
+    <div id="rkTable"></div>
+    <div class="hint">Cote continue, jamais remise à zéro : elle mesure le niveau de chacun sur toutes ses parties, jusqu'à la fin de la saison affichée. Elle ne désigne pas le vainqueur. Pondérée par le poids BGG du jeu ; seuls les joueurs présents à une partie voient leur cote évoluer.</div>
+  </div>
+  <div class="card calc">
+    <h2>Évolution des cotes</h2>
+    <div id="chart"></div>
+  </div>
+  <div class="card">
+    <h2>Palmarès des séries</h2>
+    <div id="palmares"></div>
+  </div>
+</section>
+
+<!-- PALMARÈS -->
+<section id="v-palm">
+  <div class="card"><h2>Meeple d'Or — année par année</h2><div id="plYears"></div></div>
+  <div class="card"><h2>Tableau d'honneur</h2><div id="plHonor"></div>
+    <div class="hint">Classés par nombre de Meeple d'Or, puis de séries gagnées. Toutes années confondues, historique compris.</div></div>
+  <div class="card"><h2>Vainqueurs des séries</h2><div id="plSeries"></div></div>
+</section>
+
+<!-- STATS -->
+<section id="v-stat">
+  <div class="card">
+    <h2 style="display:flex;align-items:center;gap:8px">Périmètre <span style="flex:1"></span>
+      <span class="seg"><button data-sc="all" class="on">Depuis le début</button><button data-sc="year">Année</button></span>
+    </h2>
+    <div id="stTable"></div>
+    <div class="hint">J = parties jouées · V = victoires (1re place, ex æquo compris) · Séries = séries remportées (une série en cours compte son leader provisoire) · Saisons = années terminées en tête du classement Elo.</div>
+  </div>
+  <div class="card">
+    <h2>Les jeux</h2>
+    <div class="kpi" id="gKpi"></div>
+    <div id="gStat"></div>
+    <div class="hint">Jeux effectivement joués sur la période, triés par nombre de parties. « 1re fois » = date de la première partie connue, parties d'avant l'appli comprises.</div>
+  </div>
+  <div class="card">
+    <h2>Séries — volume et difficulté</h2>
+    <div id="stSeries"></div>
+    <div class="hint">Deux graphes alignés, un par mesure : le nombre de parties et le poids BGG moyen n'ont pas la même échelle, ils ne partagent donc pas d'axe. Le poids se lit de 0 à 5, l'échelle de BGG.</div>
+  </div>
+  <div class="card">
+    <h2>Duels des joueurs principaux</h2>
+    <div id="stDuels"></div>
+    <div class="hint">Une barre par confrontation entre deux joueurs principaux (★). Finir devant quelqu'un dans une partie à plusieurs compte comme un duel gagné. L'étoile se pose dans l'onglet Joueurs ; pour un duel avec un autre joueur, utilisez la confrontation à la demande ci-dessous.</div>
+  </div>
+  <div class="card">
+    <h2>Confrontation à la demande</h2>
+    <div class="row">
+      <div><label>Joueur A</label><select id="dA"></select></div>
+      <div><label>Joueur B</label><select id="dB"></select></div>
+    </div>
+    <div id="dOut"></div>
+  </div>
+</section>
+
+<!-- PARTIES -->
+<section id="v-match">
+  <div class="card">
+    <h2 id="mFormTitle">Nouvelle partie</h2>
+    <div class="row">
+      <div><label>Date</label><input type="date" id="mDate"></div>
+      <div><label>Série</label><select id="mSerie"></select></div>
+    </div>
+    <div class="row"><div><label>Jeu <span id="mWeight" style="color:var(--dim)"></span></label><select id="mGame"></select></div></div>
+    <label class="chk"><input type="checkbox" id="mCount" checked=""><span>Compte dans les classements</span></label>
+    <div class="hint" style="margin:4px 0 0">Décochez pour une partie amicale, une démonstration ou un essai : elle sera enregistrée mais ignorée par l'Elo, les points, la qualification, les statistiques et les duels.</div>
+    <label>Participants — touchez dans l'ordre d'arrivée</label>
+    <div class="chips" id="mChips"></div>
+    <ol class="ord" id="mOrder"></ol>
+    <div class="hint" id="mHint" style="display:none">↑↓ pour corriger l'ordre · <b>=</b> pour un ex æquo avec le joueur au-dessus</div>
+    <div class="sep"></div>
+    <div class="btns">
+      <button class="btn" id="mSave">Enregistrer</button>
+      <button class="btn sec" id="mReset">Annuler</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Historique</h2>
+    <div id="mList"></div>
+  </div>
+</section>
+
+<!-- SÉRIES -->
+<section id="v-serie">
+  <div class="card">
+    <h2>Nouvelle série</h2>
+    <div class="row">
+      <div style="flex:2"><label>Nom</label><input type="text" id="sName" placeholder="Série automne"></div>
+      <div><label>Saison</label><input type="number" id="sSeason" step="1" placeholder="auto"></div>
+      <div><label>Meilleurs X</label><input type="number" id="sBest" min="1" placeholder="toutes"></div>
+    </div>
+    <label class="chk" style="margin-bottom:10px"><input type="checkbox" id="sYear" checked=""><span>Compte pour le Meeple d'Or de l'année</span></label>
+    <button class="btn" id="sAdd">Créer la série</button>
+    <div class="hint"><b>Meeple d'Or</b> : décochez pour une série à part (tournoi invité, découverte…). Ses parties comptent toujours pour l'Elo, les victoires et les parties jouées, et la série a son propre vainqueur, mais elle n'entre pas dans le classement par points de l'année.<br><br><b>Saison</b> : l'année de classement à laquelle toutes les parties de la série sont rattachées, quelle que soit leur date. Indispensable pour une série à cheval sur décembre et janvier. Laissée vide, chaque partie compte dans l'année de sa date.<br><br><b>Meilleurs X</b> : laisser vide pour compter toutes les parties. Sinon seules les X meilleures parties de chaque joueur sont retenues : les absences et les mauvais résultats sont neutralisés, et aucune partie — surtout pas la dernière — ne pèse plus qu'une autre.</div>
+  </div>
+  <div class="card" id="histCard"></div>
+  <div id="sList"></div>
+</section>
+
+<!-- JEUX -->
+<section id="v-game">
+  <div class="card">
+    <h2>Ajouter un jeu</h2>
+    <div class="row">
+      <div style="flex:2"><label>Nom</label><input type="text" id="gName" placeholder="Barrage"></div>
+      <div><label>Poids BGG</label><input type="number" id="gW" min="1" max="5" step="0.01" placeholder="2.50"></div>
+    </div>
+    <div class="btns"><button class="btn" id="gAdd">Ajouter</button></div>
+  </div>
+  <div class="card">
+    <h2>Import d'une liste</h2>
+    <div class="btns">
+      <button class="btn sec" id="gCsv">Importer un fichier CSV</button>
+      <button class="btn sec" id="gTxtT">Coller une liste</button>
+    </div>
+    <input type="file" id="gFile" accept=".csv,.txt,text/csv" style="display:none">
+    <div id="gTxtBox" style="display:none;margin-top:10px">
+      <textarea id="gBulk" placeholder="Barrage;4.08
+Azul;1.78
+Splendor;1.80"></textarea>
+      <button class="btn sec" id="gBulkAdd" style="margin-top:8px">Importer la liste</button>
+    </div>
+    <div id="gReport"></div>
+    <div class="hint">Le CSV est lu avec détection automatique du séparateur et des colonnes : une colonne de nom (<code>objectname</code>, <code>nom</code>, <code>name</code>, <code>titre</code>…) et une colonne de poids (<code>avgweight</code>, <code>poids</code>, <code>weight</code>, <code>complexité</code>…). L'export de collection BGG et l'export MyLudo passent tels quels. Sans en-tête reconnu, la 1re colonne sert de nom et la 1re colonne numérique de poids. Les doublons sont ignorés, les jeux importés restent en mémoire.</div>
+  </div>
+  <div class="card"><h2 style="display:flex;align-items:center;gap:8px">Jeux <span style="flex:1"></span>
+    <span class="seg"><button data-gf="all" class="on">Tous</button><button data-gf="nw">Sans poids</button></span></h2>
+    <div id="gList"></div></div>
+</section>
+
+<!-- JOUEURS -->
+<section id="v-player">
+  <div class="card">
+    <h2>Ajouter un joueur</h2>
+    <div class="row"><div><label>Nom</label><input type="text" id="pName" placeholder="Prénom"></div></div>
+    <button class="btn" id="pAdd">Ajouter</button>
+  </div>
+  <div class="card"><h2>Joueurs</h2><div id="pList"></div>
+    <div class="hint">★ = joueur principal : ses duels sont affichés en barres dans l'onglet Stats. La pastille colorée ouvre la fiche du joueur, où se modifient le nom, la couleur et le statut.<br><br>Un joueur créé ici est <b>nouveau</b> par défaut, donc calibré sur ses premières parties. Passez en <b>confirmé</b> ceux dont le niveau était déjà établi avant la mise en place de l'appli : leur cote évoluera au rythme normal dès la première partie. Les joueurs qui figuraient déjà dans des parties au moment de cette mise à jour ont été passés en confirmé automatiquement, faute d'historique exploitable.</div></div>
+</section>
+
+<!-- RÉGLAGES -->
+<section id="v-set">
+  <div class="card">
+    <h2>Paramètres de calcul</h2>
+    <div class="row">
+      <div><label>Elo de départ</label><input type="number" id="cStart" step="10"></div>
+      <div><label>Facteur K</label><input type="number" id="cK" step="1"></div>
+    </div>
+    <div class="row">
+      <div><label>Poids BGG de référence</label><input type="number" id="cRef" step="0.1"></div>
+      <div><label>Parties retenues par défaut</label><input type="number" id="cCapD" min="1" step="1"></div>
+    </div>
+    <div class="row">
+      <div><label>Poids du nombre de joueurs</label><select id="cSize">
+        <option value="sqrt">Atténué — ×1,41 à 4 joueurs</option>
+        <option value="lin">Type BGA — ×2 à 4 joueurs</option>
+        <option value="none">Aucun — toutes tailles égales</option>
+      </select></div>
+      <div><label>Parties de calibration</label><input type="number" id="cNewN" min="0" step="1"></div>
+      <div><label>K × pour un nouveau</label><input type="number" id="cNewM" min="1" max="4" step="0.5"></div>
+    </div>
+    <div class="row">
+      <div><label>Prime de victoire (%)</label><input type="number" id="cBonus" min="0" max="100" step="5"></div>
+      <div><label>Courbure du barème</label><input type="number" id="cCurve" min="1" max="3" step="0.1"></div>
+    </div>
+    <div id="scalePrev"></div>
+    <div id="weightPrev"></div>
+    <button class="btn" id="cSave">Appliquer</button>
+    <div class="hint"><b>Meeple d'Or.</b> Le vainqueur de l'année est le premier au classement par points : la somme de ses meilleures parties de la saison, dans la limite du nombre de parties retenues. Au-delà, seuls les meilleurs résultats comptent ; en dessous, les parties manquantes valent zéro. Ce nombre est réglable saison par saison depuis l'onglet Classement ; la valeur ci-dessus s'applique aux saisons qui n'ont pas de réglage propre. Un cumul ne dépend pas de l'ordre des parties : inverser deux soirées ne change pas le vainqueur.<br><br>
+      <b>Cote Elo.</b> Référence de niveau, continue et jamais remise à zéro. K effectif d'une partie = K × (poids BGG / poids de référence) : un jeu lourd fait bouger les cotes plus fort qu'un jeu léger.<br><br>
+      <b>Parties amicales.</b> Chaque partie porte une case « Compte dans les classements », cochée par défaut. Décochée, la partie disparaît de l'Elo, des points, des statistiques et des duels, tout en restant enregistrée dans l'onglet Parties. Le bouton ⊘ de l'historique bascule l'état sans ouvrir le formulaire.<br><br>
+      <b>Calibration des nouveaux.</b> Pendant ses premières parties en carrière, un joueur voit sa cote bouger K× plus vite, pour rejoindre son vrai niveau. C'est ce que font BGA (K=60 sur 30 parties, puis 40) et la FIDE (40 puis 20). La contrepartie est reprise à parts égales sur les adversaires déjà calibrés : la somme des cotes reste conservée. Mettre 0 partie ou ×1 désactive la calibration ; un joueur « confirmé » y échappe toujours.</div>
+  </div>
+  <div class="card" id="cardData">
+    <h2>Données</h2>
+    <div class="btns">
+      <button class="btn sec" id="expJ">Exporter (JSON)</button>
+      <button class="btn sec" id="impJ">Importer</button>
+      <button class="btn danger" id="wipe">Tout effacer</button>
+    </div>
+    <input type="file" id="fileJ" accept=".json" style="display:none">
+    <div class="hint" id="saveInfo"></div>
+  </div>
+  <div class="card" id="cardPub">
+    <h2>Publication en ligne</h2>
+    <div class="row">
+      <div><label>Compte GitHub</label><input type="text" id="gOwner" placeholder="mon-compte" autocomplete="off" autocapitalize="none"></div>
+      <div><label>Dépôt</label><input type="text" id="gRepo" placeholder="meeple-dor" autocomplete="off" autocapitalize="none"></div>
+    </div>
+    <div class="row"><div><label>Clé d'accès</label><input type="password" id="gTok" placeholder="github_pat_…" autocomplete="off"></div></div>
+    <div class="btns">
+      <button class="btn" id="gPub">Publier en ligne</button>
+      <button class="btn sec" id="gCfg">Enregistrer la configuration</button>
+    </div>
+    <div class="hint" id="gInfo"></div>
+    <div class="hint">Publier envoie sur votre dépôt GitHub la page de l'appli et la sauvegarde à jour. Les visiteurs l'ouvrent en <b>consultation</b> : ils voient tout, ne peuvent rien modifier. La clé reste uniquement dans ce navigateur, séparée des données : elle n'est jamais publiée ni incluse dans les exports. Si vous m'envoyez une nouvelle version de l'appli, publier la met aussi en ligne.</div>
+  </div>
+  <div class="card">
+    <h2>Contrôle d'intégrité</h2>
+    <div id="audit"></div>
+    <div class="hint">Le Elo est un système fermé : les points gagnés par l'un sont pris à l'autre. La somme des cotes doit donc rester égale à l'Elo de départ multiplié par le nombre de joueurs ayant disputé au moins une partie. Tout écart signale une anomalie.</div>
+  </div>
+  <div class="card">
+    <h2>Méthode</h2>
+    <div class="hint" style="color:var(--muted)">
+      <b>Par partie.</b> Chaque partie est décomposée en duels entre les seuls participants. Pour chaque paire, S = 1 (devant), 0,5 (ex æquo), 0 (derrière) et E = 1/(1+10^((Radv−Rjoueur)/400)). Δ = K_eff × Σ(S−E) / (n−1). Les joueurs absents ne bougent pas.<br><br>
+      <b>Facteur taille.</b> K_eff est encore multiplié par un facteur lié au nombre de joueurs n de la partie : 1 (aucun), √(n/2) (atténué) ou n/2 (type BGA). Battre quatre personnes pèse alors plus que battre une seule. Le facteur étant le même pour tous les participants d'une partie, le système reste fermé.<br><br>
+      <b>Calibration.</b> Tant qu'un joueur a moins de N parties, son Δ est multiplié par le coefficient de calibration ; le supplément est retranché à parts égales aux participants déjà calibrés, ce qui laisse la somme inchangée.<br><br>
+      <b>Points de place.</b> Facteur taille × 100 × (Σ S / (n−1))^courbure × poids / poids de référence, puis + prime de victoire pour le 1er. La courbure laisse le vainqueur et le dernier inchangés et écrase les rangs intermédiaires ; la prime ne touche que le vainqueur, et se partage entre ex æquo. Ni l'une ni l'autre n'intervient dans le calcul de l'Elo, qui doit rester un estimateur de force et non un barème. Σ S / (n−1) est la part des adversaires devancés : 1 pour le premier, 0 pour le dernier, 2/3 pour un 2e sur 4. On multiplie par le rapport de poids : un 1er à Barrage (4,08) vaut 163 pts, à Azul (1,78) 71 pts.<br><br>
+      <b>Série.</b> Somme des X meilleurs résultats de chaque joueur. Toutes les parties sont interchangeables : gagner la dernière ne vaut pas plus que gagner la première.<br><br>
+      <b>Saison.</b> Cote Elo continue sur l'année ; le vainqueur de la saison est le joueur en tête au 31 décembre.
+    </div>
+  </div>
+</section>
+
+</main>
+<div class="toast" id="toast"></div>
+<div id="printArea"></div>
+
+<script>
+'use strict';
+// source d'origine de la page, capturée avant tout rendu : c'est elle que « Publier » met en ligne
+const SRC='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
+// page servie par un site (et non ouverte depuis un fichier) : mode consultation, lecture seule
+const RO=/^https?:$/.test(location.protocol);
+const KEY='classement-jds-v1';
+// visuel du trophée : le Meeple d'Or (image fournie, intégrée pour rester hors ligne)
+const MEEPLE='data:image/webp;base64,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';
+const mdo=(h,extra='')=>`<img src="${MEEPLE}" alt="Meeple d'Or" style="height:${h}px;width:auto;vertical-align:middle;${extra}">`;
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const uid=()=>Math.random().toString(36).slice(2,10);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const COLORS=['#5b9cf6','#e8b13c','#3ecf8e','#e5645f','#b06ef0','#4fd4d4','#f08a4b','#8fa1b8','#d45f9e','#9fd45f','#f2d75c','#7d8cf5'];
+
+let DB={players:[],games:[],series:[],matches:[],histYears:[],seasonCfg:{},settings:{start:1000,k:32,ref:2.5,yearly:0,sizeMode:'sqrt',newN:5,newMult:2,winBonus:25,curve:1,capDefault:21},savedAt:null};
+let draft={id:null,order:[]};
+let view='rank', year=new Date().getFullYear(), stScope='all', gFilter='all', sEdit=null, pEdit=null;
+let hForm={kind:'serie',id:null,order:[]};   // saisie de l'historique en cours
+
+const DEF_SET={start:1000,k:32,ref:2.5,yearly:0,sizeMode:'sqrt',newN:5,newMult:2,winBonus:25,curve:1,capDefault:21};
+function applyData(d){ DB={...DB,...d}; DB.settings={...DEF_SET,...(d.settings||{})}; }
+function migrate(){
+  // l'Elo n'est plus jamais remis à zéro ; l'ancien plafond global devient la valeur par défaut
+  DB.settings.yearly=0;
+  if(!DB.seasonCfg) DB.seasonCfg={};
+  if(!DB.histYears) DB.histYears=[];
+  if(+DB.settings.capN>0 && !(+DB.settings.capDefault>0)) DB.settings.capDefault=+DB.settings.capN;
+  // reprise : un joueur déjà présent dans des parties avant l'arrivée de la calibration
+  // est considéré comme confirmé — l'appli ne connaît pas son historique antérieur
+  let chg=false;
+  DB.players.forEach(p=>{ if(p.vet===undefined){
+    p.vet=DB.matches.some(m=>m.results.some(r=>r.playerId===p.id)); chg=true; } });
+  return chg;
+}
+function load(){ try{const r=localStorage.getItem(KEY); if(r) applyData(JSON.parse(r));}catch(e){}
+  if(migrate()) save(); }
+async function loadOnline(){
+  try{ const r=await fetch('data.json?t='+Date.now(),{cache:'no-store'}); if(!r.ok) throw 0;
+       applyData(await r.json()); migrate(); return true; }
+  catch(e){ return false; }
+}
+function save(){ if(RO) return; try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){toast('Sauvegarde impossible (stockage plein ?)');} }
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2400);}
+
+const P=id=>(DB.players.find(p=>p.id===id)||{name:'?'});
+const pName=id=>P(id).name;
+const gById=id=>DB.games.find(g=>g.id===id)||{name:'?',weight:null};
+const pColor=id=>{const p=P(id); if(p.color)return p.color;
+  const i=DB.players.findIndex(x=>x.id===id);return COLORS[(i<0?0:i)%COLORS.length];};
+const fdate=d=>{const[y,m,j]=d.split('-');return j+'/'+m+'/'+y.slice(2);};
+const gw=g=>(+g.weight>0? +g.weight : DB.settings.ref);
+
+/* ---------- moteur ---------- */
+const sBySeries=id=>DB.series.find(x=>x.id===id)||null;
+// facteur lié au nombre de joueurs : une partie à plusieurs pèse-t-elle plus qu'un tête-à-tête ?
+function sizeF(n){ const m=DB.settings.sizeMode||'sqrt';
+  if(m==='lin') return n/2;            // type BGA : ×1 à 2 j., ×2 à 4 j.
+  if(m==='sqrt') return Math.sqrt(n/2); // atténué : ×1 à 2 j., ×1,41 à 4 j.
+  return 1; }                           // aucune : toutes les tailles à égalité
+// un joueur marqué « confirmé » n'est jamais calibré : son niveau est connu hors de l'appli
+const calibON=()=>(+DB.settings.newN||0)>0&&(+DB.settings.newMult||1)!==1;
+const enCalib=(id,played)=>calibON()&&!P(id).vet&&played<(+DB.settings.newN||0);
+function seasonOf(m){ const s=m.seriesId?sBySeries(m.seriesId):null;
+  return (s&&s.season)?String(s.season):m.date.slice(0,4); }
+// chaque partie décide elle-même si elle entre dans les calculs (m.off === true : exclue)
+const compte=m=>!m.off;
+const horsClt=()=>DB.matches.filter(m=>!compte(m)).length;
+function sortedMatches(y){
+  return DB.matches.filter(m=>compte(m)&&(!y||seasonOf(m)===String(y)))
+    .slice().sort((a,b)=> a.date===b.date ? (a.seq||0)-(b.seq||0) : a.date<b.date?-1:1);
+}
+function duels(m){
+  const R=m.results,n=R.length,out={};
+  R.forEach(r=>out[r.playerId]={s:0,n:n-1,rank:r.rank});
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++){ if(i===j)continue;
+    const a=R[i],b=R[j];
+    out[a.playerId].s += a.rank<b.rank?1 : a.rank===b.rank?0.5:0; }
+  return out;
+}
+// Elo continu, jamais remis à zéro.
+// engine(Y) : cote de chacun à la fin de la saison Y (toutes les parties jusque-là),
+//             compteurs, dernier écart et graphe limités à la saison Y.
+// engine(null) : toute l'histoire.
+function engine(scopeYear){
+  const S=DB.settings, R={},hist={},st={},cp={},md={};
+  const inY=m=>!scopeYear||seasonOf(m)===String(scopeYear);
+  const ms=sortedMatches(null).filter(m=>!scopeYear||+seasonOf(m)<=+scopeYear);
+  let x=0;
+  ms.forEach(m=>{
+    const g=gById(m.gameId), w=gw(g), nP=m.results.length,
+          kEff=S.k*(w/S.ref)*sizeF(nP), d=duels(m);
+    const ids=Object.keys(d);
+    ids.forEach(id=>{ if(R[id]===undefined){R[id]=S.start;cp[id]=0;} });
+    const delta={};
+    ids.forEach(id=>{ let exp=0;
+      ids.forEach(o=>{ if(o!==id) exp+=1/(1+Math.pow(10,(R[o]-R[id])/400)); });
+      delta[id]= d[id].n? kEff*(d[id].s-exp)/d[id].n : 0; });
+    // calibration des nouveaux, sur leur nombre de parties en carrière ;
+    // la contrepartie est reprise sur les joueurs calibrés pour conserver la somme
+    const nN=+S.newN||0, nM=+S.newMult||1;
+    if(nN>0&&nM!==1){
+      const neufs=ids.filter(id=>enCalib(id,cp[id])), vieux=ids.filter(id=>!enCalib(id,cp[id]));
+      if(neufs.length&&vieux.length){
+        let exces=0;
+        neufs.forEach(id=>{const sup=delta[id]*(nM-1);delta[id]+=sup;exces+=sup;});
+        vieux.forEach(id=>{delta[id]-=exces/vieux.length;});
+      } else if(neufs.length){ neufs.forEach(id=>{delta[id]*=nM;}); }
+    }
+    const scoped=inY(m); if(scoped) x++;
+    const mp=scoped?matchPts(m):null;
+    ids.forEach(id=>{
+      if(scoped && !st[id]){ st[id]={played:0,wins:0,pts:0,last:0,peak:R[id]}; hist[id]=[{x:x-1,v:R[id]}]; }
+      R[id]+=delta[id]; cp[id]++;
+      (md[m.id]=md[m.id]||{})[id]={d:delta[id],after:R[id]};
+      if(scoped){ const s=st[id];
+        s.played++; s.pts+=mp[id]; if(d[id].rank===1)s.wins++;
+        s.last=delta[id]; s.peak=Math.max(s.peak,R[id]); hist[id].push({x,v:R[id]}); }
+    });
+  });
+  return {R,hist,st,cp,md,count:x};
+}
+// points de série : part des adversaires devancés, courbée, pondérée par la taille
+// et le poids du jeu, puis majorée de la prime de victoire pour le 1er
+function ptsFor(base,rank,nWin,pw,f){
+  const S=DB.settings, p=+S.curve||1, bon=(+S.winBonus||0)/100;
+  let v=100*Math.pow(Math.max(0,base),p)*pw*f;
+  if(rank===1&&bon>0) v*=1+bon/Math.max(1,nWin);
+  return v;
+}
+function matchPts(m){
+  const pw=gw(gById(m.gameId))/DB.settings.ref, d=duels(m), f=sizeF(m.results.length), o={};
+  const nWin=m.results.filter(r=>r.rank===1).length;
+  Object.keys(d).forEach(id=> o[id]=ptsFor(d[id].n? d[id].s/d[id].n:0, d[id].rank, nWin, pw, f) );
+  return o;
+}
+// ---- historique saisi à la main ----
+// série passée : s.hist=true, s.ranking=[ids dans l'ordre], s.nGames, s.avgWeight
+// année passée : DB.histYears=[{id,year,ranking:[ids],nGames,nSeries}]
+const histYear=y=>(DB.histYears||[]).find(x=>String(x.year)===String(y))||null;
+function serieSeason(s){
+  if(s.season) return String(s.season);
+  if(s.hist) return (s.end||s.start||'').slice(0,4)||null;
+  const m=DB.matches.find(m=>m.seriesId===s.id); return m?seasonOf(m):null;
+}
+function serieInYear(s,y){
+  if(s.hist) return serieSeason(s)===String(y);
+  return DB.matches.some(m=>m.seriesId===s.id&&compte(m)&&seasonOf(m)===String(y));
+}
+// série historique : victoires et parties par joueur, s.pstats={pid:{w,g}} (valeurs nulles = inconnues)
+const hps=(s,pid)=>((s.pstats||{})[pid])||{w:null,g:null};
+const histWinnerWins=s=>{ const w=(s.ranking||[])[0]; if(!w) return null;
+  const v=hps(s,w).w; return v!=null?v:(s.winWins!=null?s.winWins:null); };
+// cumul historique d'un joueur sur un périmètre (null = toutes saisons)
+// w : victoires ; g : parties connues ; wg : victoires dont les parties sont connues (pour un taux juste)
+function histTotals(pid,y){
+  const t={w:0,g:0,wg:0,n:0};
+  DB.series.filter(s=>s.hist&&(!y||serieSeason(s)===String(y))).forEach(s=>{
+    const x=hps(s,pid); if(x.w==null&&x.g==null) return;
+    t.n++; if(x.w!=null) t.w+=x.w; if(x.g!=null){ t.g+=x.g; if(x.w!=null) t.wg+=x.w; } });
+  return t;
+}
+// statistiques combinées appli + historique
+function combStats(st,y){
+  const ids=new Set(Object.keys(st));
+  DB.series.filter(s=>s.hist&&(!y||serieSeason(s)===String(y))).forEach(s=>Object.keys(s.pstats||{}).forEach(i=>ids.add(i)));
+  const o={};
+  ids.forEach(id=>{ const a=st[id]||{played:0,wins:0}, h=histTotals(id,y);
+    const J=a.played+h.g, V=a.wins+h.w, rate=(a.played+h.g)?(a.wins+h.wg)/(a.played+h.g):null;
+    o[id]={J,V,rate,hJ:h.g,hV:h.w,app:a}; });
+  return o;
+}
+const serieN=s=>s.hist?(+s.nGames||0):DB.matches.filter(m=>m.seriesId===s.id&&compte(m)).length;
+function serieWinner(s){
+  if(s.hist) return (s.ranking||[])[0]||null;
+  if(!DB.matches.some(m=>m.seriesId===s.id&&compte(m))) return null;
+  const r=serieRank(s); return r.length?r[0].id:null;
+}
+function serieRank(s){
+  if(s.hist) return (s.ranking||[]).map((id,i)=>({id,total:null,played:null,kept:null,rank:i+1}));
+  const ms=DB.matches.filter(m=>m.seriesId===s.id&&compte(m)), acc={};
+  ms.forEach(m=>{const p=matchPts(m);Object.keys(p).forEach(id=>{(acc[id]=acc[id]||[]).push(p[id]);});});
+  const best=s.best?+s.best:null;
+  return Object.keys(acc).map(id=>{
+    const all=acc[id].slice().sort((a,b)=>b-a), kept=best?all.slice(0,best):all;
+    return {id,total:kept.reduce((a,b)=>a+b,0),played:all.length,kept:kept.length};
+  }).sort((a,b)=>b.total-a.total);
+}
+function duelStats(scopeYear){
+  const out={};
+  sortedMatches(scopeYear).forEach(m=>{
+    const R=m.results;
+    for(let i=0;i<R.length;i++)for(let j=i+1;j<R.length;j++){
+      const a=R[i],b=R[j], k=[a.playerId,b.playerId].sort().join('|');
+      const o=out[k]=out[k]||{a:k.split('|')[0],b:k.split('|')[1],wa:0,wb:0,d:0,n:0};
+      o.n++;
+      const aFirst=o.a===a.playerId;
+      if(a.rank===b.rank)o.d++;
+      else if((a.rank<b.rank)===aFirst)o.wa++; else o.wb++;
+    }});
+  return out;
+}
+const years=()=>{const s=new Set(DB.matches.map(m=>seasonOf(m)));
+  DB.series.forEach(x=>{const y=serieSeason(x); if(y)s.add(y);});
+  (DB.histYears||[]).forEach(h=>s.add(String(h.year)));
+  s.add(String(new Date().getFullYear()));return [...s].sort().reverse();};
+// une série peut être tenue hors du décompte annuel : ses parties restent comptées pour l'Elo,
+// les victoires et les parties jouées, mais pas pour le classement par points de l'année
+const horsDecompte=s=>!!(s&&s.noYear);
+const inYearCount=m=>!(m.seriesId&&horsDecompte(sBySeries(m.seriesId)));
+// nombre de parties retenues : réglable saison par saison, sinon valeur par défaut (21)
+const seasonCap=y=>{ const c=(DB.seasonCfg||{})[String(y)];
+  return (c&&+c.capN>0)? +c.capN : (+DB.settings.capDefault||21); };
+function annualPts(scopeYear){
+  const perM={};
+  sortedMatches(scopeYear).filter(inYearCount).forEach(m=>{const pp=matchPts(m);
+    Object.keys(pp).forEach(i=>{(perM[i]=perM[i]||[]).push(pp[i]);});});
+  const cap=seasonCap(scopeYear), o={};
+  Object.keys(perM).forEach(i=>{
+    const all=perM[i].slice().sort((a,b)=>b-a), kept=cap>0?all.slice(0,cap):all;
+    o[i]={total:kept.reduce((a,b)=>a+b,0),played:all.length,kept:kept.length};});
+  return o;
+}
+// classement par points ; à égalité, départage de la F1 d'avant : le plus de victoires,
+// puis de 2es places, etc. Rien ici ne dépend de l'ordre des parties.
+function ptsOrder(y){
+  const ap=annualPts(y), pl={};
+  sortedMatches(y).filter(inYearCount).forEach(m=>m.results.forEach(r=>{
+    const a=pl[r.playerId]=pl[r.playerId]||[]; a[r.rank-1]=(a[r.rank-1]||0)+1; }));
+  const cmpPl=(a,b)=>{ const A=pl[a]||[],B=pl[b]||[],n=Math.max(A.length,B.length);
+    for(let i=0;i<n;i++){ const d=(B[i]||0)-(A[i]||0); if(d) return d; } return 0; };
+  const eq=(a,b)=>Math.abs(ap[a].total-ap[b].total)<1e-6;
+  const ids=Object.keys(ap).sort((a,b)=> eq(a,b) ? (cmpPl(a,b)||pName(a).localeCompare(pName(b))) : ap[b].total-ap[a].total);
+  let tie=null;
+  if(ids.length>1&&eq(ids[0],ids[1])) tie=cmpPl(ids[0],ids[1])?'places':'parfaite';
+  return {ap,ids,tie,pl};
+}
+function seasonTitle(y){
+  const h=histYear(y); if(h) return (h.ranking||[])[0]||null;
+  return ptsOrder(+y).ids[0]||null;
+}
+// années terminées : calculées avant l'année en cours, plus toutes les années saisies
+function titleYears(){
+  const now=new Date().getFullYear(), ys=new Set();
+  DB.matches.filter(compte).forEach(m=>{ if(+seasonOf(m)<now) ys.add(seasonOf(m)); });
+  (DB.histYears||[]).forEach(h=>ys.add(String(h.year)));
+  return [...ys].sort();
+}
+function seasonWins(){
+  const w={};
+  titleYears().forEach(y=>{const c=seasonTitle(y); if(c) w[c]=(w[c]||0)+1;});
+  return w;
+}
+const titlesOf=pid=>titleYears().filter(y=>seasonTitle(y)===pid);
+function serieWins(scopeYear){
+  const w={};
+  DB.series.forEach(s=>{
+    if(scopeYear && !serieInYear(s,scopeYear)) return;
+    const id=serieWinner(s); if(id) w[id]=(w[id]||0)+1; });
+  return w;
+}
+const seriesWonBy=pid=>seriesSorted().filter(s=>serieWinner(s)===pid);
+
+/* ---------- rendu ---------- */
+function render(){
+  $('#hsub').textContent = DB.matches.length? '· '+DB.matches.length+' partie'+(DB.matches.length>1?'s':'') : '';
+  const ys=years(); if(!ys.includes(String(year))) year=+ys[0];
+  $('#year').innerHTML=ys.map(y=>`<option ${y==year?'selected':''}>${y}</option>`).join('');
+  ({rank:rRank,palm:rPalm,stat:rStat,match:rMatch,serie:rSerie,game:rGame,player:rPlayer,set:rSet})[view]();
+}
+function rRankHist(h){
+  $$('#v-rank .calc').forEach(c=>c.style.display='none');
+  const sy=seriesSorted().filter(x=>serieInYear(x,year)), ch=h.ranking[0];
+  $('#kpi').innerHTML=`<div><b>${h.nGames||'—'}</b><span>parties</span></div>
+    <div><b>${h.ranking.length}</b><span>joueurs</span></div>
+    <div><b>${h.nSeries||sy.length||'—'}</b><span>séries</span></div>
+    <div><b>${sy.length&&sy.some(x=>seriePoids(x)!==null)?(sy.filter(x=>seriePoids(x)!==null).reduce((a,x)=>a+seriePoids(x),0)/sy.filter(x=>seriePoids(x)!==null).length).toFixed(2):'—'}</b><span>poids moyen</span></div>`;
+  $('#titleBox').innerHTML=`<h2>Titre ${year} <span class="tag">historique</span></h2>
+    <div style="font-size:15px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:9px">${mdo(34)}
+      <span>${ch?`<span style="color:${pColor(ch)}">●</span> ${esc(pName(ch))}`:'—'}${h.winWins!=null?` <span style="font-weight:400;color:var(--muted);font-size:12px">— ${plur(h.winWins,'victoire')}</span>`:''}</span></div>
+    <table><thead><tr><th class="pos"></th><th>Joueur</th></tr></thead><tbody>${h.ranking.map((id,i)=>
+      `<tr class="${i===0?'p1':''}"><td class="pos">${i+1}</td><td><span style="color:${pColor(id)}">●</span> ${esc(pName(id))}${i===0?' '+mdo(15,'margin-left:3px'):''}</td></tr>`).join('')}</tbody></table>
+    <div class="hint">Classement saisi à la main : pas de cote Elo ni de points pour cette année.
+      <a href="#" data-hy="${h.id}" style="color:var(--acc)">Modifier</a></div>`;
+  $('#palmares').innerHTML= !sy.length?'<div class="empty">Aucune série cette année.</div>' :
+   sy.map(x=>{const w=serieWinner(x), n=serieN(x), po=seriePoids(x);
+    return `<div class="item"><div class="g"><div class="t">${esc(x.name)} ${x.hist?'<span class="tag">historique</span>':''}</div>
+     <div class="s">${w?`🏆 ${esc(pName(w))}`:'aucun résultat'}${n?' · '+n+' parties':''}${po!==null?' · poids '+po.toFixed(2):''}</div></div></div>`;}).join('');
+}
+function rRank(){
+  const hy=histYear(year);
+  if(hy) return rRankHist(hy);
+  $$('#v-rank .calc').forEach(c=>c.style.display='');
+  const {R,hist,st,cp}=engine(year);
+  const ids=Object.keys(st).sort((a,b)=>R[b]-R[a]);
+  const po=ptsOrder(year), ap=po.ap, ptsIds=po.ids;
+  const cap=seasonCap(year), champ=ptsIds[0]||null, second=ptsIds[1]||null;
+  const perso=!!((DB.seasonCfg||{})[String(year)]||{}).capN;
+  const cours=String(year)===String(new Date().getFullYear());
+  $('#rkYear').textContent=year;
+  const my=sortedMatches(year), sy=seriesSorted().filter(s=>serieInYear(s,year));
+  $('#kpi').innerHTML=`<div><b>${my.length}</b><span>parties</span></div>
+    <div><b>${ids.length}</b><span>joueurs</span></div>
+    <div><b>${sy.length}</b><span>séries</span></div>
+    <div><b>${my.length?(my.reduce((a,m)=>a+gw(gById(m.gameId)),0)/my.length).toFixed(2):'—'}</b><span>poids moyen</span></div>`;
+
+  const nm=id=>id?`<span style="color:${pColor(id)}">●</span> ${esc(pName(id))}`:'personne';
+  const eloTop=Object.keys(R).sort((a,b)=>R[b]-R[a])[0], hc=horsClt();
+  $('#titleBox').innerHTML = !ids.length ? `<h2>Meeple d'Or ${year}</h2><div class="empty">Aucune partie comptabilisée cette saison.</div>`+capCtl(cap,perso) :
+   `<h2>Meeple d'Or ${year} ${cours?'<span class="tag open">en cours</span>':''}</h2>
+    <div style="font-size:15px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:9px">${mdo(34)}<span>${nm(champ)}
+      <span style="font-weight:400;color:var(--muted);font-size:12px">— ${Math.round(ap[champ].total)} points${cours?' · leader provisoire':''}</span></span></div>
+    <div class="hint" style="margin:0">${tieNote(po,champ,second)}
+      Cote Elo la plus haute : ${esc(pName(eloTop))} (${Math.round(R[eloTop])}).</div>
+    ${capCtl(cap,perso)}
+    ${(()=>{const ex=sy.filter(horsDecompte);return ex.length?`<div class="hint" style="color:var(--gold);margin-top:6px">Hors décompte de l'année : ${ex.map(x=>esc(x.name)).join(', ')} — comptée${ex.length>1?'s':''} pour l'Elo et les statistiques seulement.</div>`:'';})()}
+    ${hc?`<div class="hint" style="color:var(--red);margin-top:6px">${hc} partie${hc>1?'s':''} décochée${hc>1?'s':''} « ne compte pas », exclue${hc>1?'s':''} de tous les calculs.</div>`:''}`;
+
+  $('#ptTable').innerHTML= !ptsIds.length?'<div class="empty">Aucune partie.</div>' :
+   `<table><thead><tr><th class="pos"></th><th>Joueur</th><th class="num">Points</th><th class="num">Retenues</th><th class="num">Jouées</th></tr></thead><tbody>`+
+   ptsIds.map((id,i)=>`<tr class="${id===champ?'p1':''} pp-row" data-pp="${id}"><td class="pos">${i+1}</td>
+    <td><span class="chev">${ptOpen.has(id)?'▾':'▸'}</span>${nm(id)}${id===champ?' '+mdo(15,'margin-left:3px'):''}</td>
+    <td class="num elo">${Math.round(ap[id].total)}</td>
+    <td class="num" style="color:${ap[id].kept<cap?'var(--gold)':'var(--muted)'}">${ap[id].kept}/${cap}</td>
+    <td class="num" style="color:var(--muted)">${ap[id].played}</td></tr>`+(ptOpen.has(id)?ptDetail(id,year,cap):'')).join('')+'</tbody></table>'+
+   `<div class="hint">Touchez un joueur pour voir le détail de ses parties retenues. Somme des <b>${cap} meilleures parties</b> de chaque joueur. Au-delà, seuls les meilleurs résultats sont gardés ; en dessous, les parties manquantes comptent pour zéro — une retenue en doré signale un joueur qui n'a pas encore atteint le quota. Un cumul ne dépend pas de l'ordre des parties.</div>`;
+
+  // tous les joueurs ayant une cote, même sans partie cette saison : la cote se conserve
+  const eloIds=Object.keys(R).sort((a,b)=>R[b]-R[a]);
+  const eloSum=eloIds.reduce((a,i)=>a+R[i],0), inact=eloIds.filter(i=>!st[i]).length;
+  $('#rkTable').innerHTML= !eloIds.length?'<div class="empty">Aucune partie.</div>' :
+   `<table><thead><tr><th class="pos"></th><th>Joueur</th><th class="num">Elo</th><th class="num">Δ</th><th class="num">J</th><th class="num">V</th></tr></thead><tbody>`+
+   eloIds.map((id,i)=>{ const x=st[id], cal=enCalib(id,cp[id]);
+    if(!x) return `<tr class="nq"><td class="pos">${i+1}</td>
+      <td>${nm(id)} <span class="tag">aucune partie en ${year}</span></td>
+      <td class="num elo">${Math.round(R[id])}</td><td class="num flat">—</td><td class="num">0</td><td class="num">0</td></tr>`;
+    const d=x.last;
+    return `<tr><td class="pos">${i+1}</td>
+    <td>${nm(id)}${cal?' <span class="tag">en calibration</span>':''}</td>
+    <td class="num elo">${Math.round(R[id])}</td>
+    <td class="num ${d>.5?'up':d<-.5?'down':'flat'}">${d>0?'+':''}${d.toFixed(1)}</td>
+    <td class="num">${x.played}</td><td class="num">${x.wins}</td></tr>`;}).join('')+
+   `<tr class="elo-sum"><td></td><td>Somme des cotes · ${eloIds.length} joueur${eloIds.length>1?'s':''}</td>
+     <td class="num elo">${Math.round(eloSum)}</td><td colspan="3" class="num" style="color:var(--muted)">moy. ${(eloSum/eloIds.length).toFixed(1)}</td></tr>`+
+   '</tbody></table>'+(inact?`<div class="hint">${inact} joueur${inact>1?'s':''} sans partie en ${year} : ${inact>1?'leurs cotes sont conservées':'sa cote est conservée'} et ${inact>1?'restent':'reste'} dans la somme, qui vaut toujours ${DB.settings.start} × le nombre de joueurs ayant une cote.</div>`:'');
+  lastChart={hist,R}; drawChart();
+  $('#palmares').innerHTML= !sy.length?'<div class="empty">Aucune série cette année.</div>' :
+   sy.map(s=>{const r=serieRank(s),w=r[0];
+    return `<div class="item"><div class="g"><div class="t">${esc(s.name)} ${s.hist?'<span class="tag">historique</span>':s.status==='closed'?'<span class="tag closed">clôturée</span>':'<span class="tag open">en cours</span>'}${s.noYear?'<span class="tag warn">hors Meeple d\'Or</span>':''}</div>
+     <div class="s">${w?`🏆 ${esc(pName(w.id))}${w.total!=null?' — '+Math.round(w.total)+' pts':''}`:'aucun résultat'} · ${serieN(s)} parties${seriePoids(s)!==null?' · poids '+seriePoids(s).toFixed(2):''}${s.best?' · meilleurs '+s.best:''}</div></div></div>`;}).join('');
+}
+function tieNote(po,champ,second){
+  if(!second) return '';
+  const a=po.ap;
+  if(!po.tie) return `Avance sur ${esc(pName(second))} : <b style="color:var(--txt)">${Math.round(a[champ].total-a[second].total)} points</b>. `;
+  if(po.tie==='places'){
+    const A=po.pl[champ]||[],B=po.pl[second]||[]; let k=0; while((A[k]||0)===(B[k]||0)) k++;
+    const lab=k===0?'victoires':(k+1)+'es places';
+    return `<span style="color:var(--gold)">Égalité de points avec ${esc(pName(second))}</span>, départagés au nombre de ${lab} (${A[k]||0} contre ${B[k]||0}). `;
+  }
+  return `<span style="color:var(--gold)">Égalité parfaite avec ${esc(pName(second))}</span>, points et places compris : départagés par ordre alphabétique. `;
+}
+// détail d'un joueur : chaque partie de la saison avec ses points, retenues d'abord
+let ptOpen=new Set();
+function playerResults(pid,y){
+  const o=[];
+  sortedMatches(y).filter(inYearCount).forEach(m=>{ const r=m.results.find(x=>x.playerId===pid); if(!r) return;
+    const nWin=m.results.filter(x=>x.rank===r.rank).length;
+    o.push({m,rank:r.rank,n:m.results.length,tie:nWin>1,pts:matchPts(m)[pid]||0}); });
+  // même critère que le total : meilleurs points d'abord ; à égalité, la plus ancienne
+  o.sort((a,b)=>b.pts-a.pts || (a.m.date<b.m.date?-1:a.m.date>b.m.date?1:(a.m.seq||0)-(b.m.seq||0)));
+  return o;
+}
+function ptDetail(pid,y,cap){
+  const all=playerResults(pid,y), kept=all.slice(0,cap), out=all.slice(cap);
+  const place=x=>`${x.rank===1?'1<sup>er</sup>':x.rank+'<sup>e</sup>'}${x.tie?' ex æq.':''} / ${x.n}`;
+  const line=(x,i,dim)=>`<tr class="${dim?'off':''}"><td class="k">${dim?'':i+1}</td><td>${fdate(x.m.date)}</td>
+    <td class="gm">${esc(gById(x.m.gameId).name)}</td><td>${place(x)}</td><td class="num">${x.pts.toFixed(1)}</td></tr>`;
+  const tot=kept.reduce((a,x)=>a+x.pts,0), miss=Math.max(0,cap-kept.length);
+  return `<tr class="det"><td colspan="5"><table class="dt"><thead><tr><th></th><th>Date</th><th>Jeu</th><th>Place</th><th class="num">Pts</th></tr></thead><tbody>
+    ${kept.map((x,i)=>line(x,i,false)).join('')}
+    ${miss?`<tr class="miss"><td class="k"></td><td colspan="3">${miss} partie${miss>1?'s':''} manquante${miss>1?'s':''}, comptée${miss>1?'s':''} zéro</td><td class="num">0.0</td></tr>`:''}
+    <tr class="sum"><td></td><td colspan="3">Total des ${cap} parties retenues</td><td class="num">${tot.toFixed(1)}</td></tr>
+    ${out.length?`<tr class="sep2"><td colspan="5">Non retenues (${out.length})</td></tr>${out.map(x=>line(x,0,true)).join('')}`:''}
+    </tbody></table></td></tr>`;
+}
+// réglage du nombre de parties retenues, propre à la saison affichée
+function capCtl(cap,perso){
+  return `<div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">
+    <label style="margin:0;flex:1">Parties retenues pour la saison ${year}${perso?'':` <span style="color:var(--dim)">(valeur par défaut)</span>`}</label>
+    <input type="number" id="capIn" min="1" step="1" value="${cap}" style="width:70px;padding:6px 8px" ${RO?'disabled':''}>
+    ${perso?`<button class="mini" id="capReset" title="Revenir à la valeur par défaut">↺</button>`:''}</div>`;
+}
+// le graphe est dessiné à la taille réelle de son bloc : ni étiré sur PC, ni tassé sur téléphone
+let lastChart=null;
+function drawChart(){
+  const el=$('#chart'); if(!el||!lastChart) return;
+  const W=Math.round(el.clientWidth)||340;
+  const H=Math.round(Math.max(170,Math.min(320,W*0.42)));
+  el.innerHTML=chart(lastChart.hist,lastChart.R,W,H);
+}
+let rzT=null;
+window.addEventListener('resize',()=>{ clearTimeout(rzT); rzT=setTimeout(()=>{ if(view==='rank') drawChart(); },120); });
+function chart(hist,R,W=340,H=150){
+  const ids=Object.keys(hist); if(!ids.length)return '<div class="empty">—</div>';
+  const PL=38,PR=8,PT=10,PB=10, FS=W>500?11:9;
+  const maxX=Math.max(1,...ids.map(i=>hist[i][hist[i].length-1].x));
+  // la cote de départ (1000) sert de repère : l'échelle l'inclut toujours
+  const ref=+DB.settings.start||1000;
+  let lo=1e9,hi=-1e9; ids.forEach(i=>hist[i].forEach(p=>{lo=Math.min(lo,p.v);hi=Math.max(hi,p.v);}));
+  lo=Math.min(lo,ref); hi=Math.max(hi,ref);
+  if(hi-lo<40){const c=(hi+lo)/2;lo=c-20;hi=c+20;}
+  const pad=(hi-lo)*.1;lo-=pad;hi+=pad;
+  const X=x=>PL+(x/maxX)*(W-PL-PR), Y=v=>PT+(1-(v-lo)/(hi-lo))*(H-PT-PB);
+  let g='';
+  // graduations rondes, multiples d'un pas qui divise 1000 : le repère tombe toujours sur une graduation
+  const step=[10,20,25,50,100,200,250,500].find(k=>(hi-lo)/k<=(H>220?6:5))||1000;
+  for(let v=Math.ceil(lo/step)*step; v<=hi; v+=step){ const y=Y(v);
+    if(v===ref) continue;
+    g+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="#20242d" stroke-width="1"/>
+        <text x="${PL-7}" y="${y+FS*.35}" fill="#5d636e" font-size="${FS}" text-anchor="end">${v}</text>`; }
+  const yr=Y(ref);
+  g+=`<line class="ref" x1="${PL}" y1="${yr}" x2="${W-PR}" y2="${yr}" stroke="#8a909c" stroke-width="1.2" stroke-dasharray="5 4"/>
+      <text x="${PL-7}" y="${yr+FS*.35}" fill="#c3c8d1" font-size="${FS}" font-weight="600" text-anchor="end">${ref}</text>`;
+  ids.forEach(id=>{const pts=hist[id].map(p=>X(p.x).toFixed(1)+','+Y(p.v).toFixed(1)).join(' ');
+    const l=hist[id][hist[id].length-1];
+    g+=`<polyline points="${pts}" fill="none" stroke="${pColor(id)}" stroke-width="${W>500?2.2:1.8}" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${X(l.x).toFixed(1)}" cy="${Y(l.v).toFixed(1)}" r="${W>500?3.4:2.6}" fill="${pColor(id)}"/>`;});
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${g}</svg>
+   <div class="lg">${ids.map(i=>`<span><i style="background:${pColor(i)}"></i>${esc(pName(i))}</span>`).join('')}</div>`;
+}
+const plur=(n,w)=>`${n} ${w}${n>1?'s':''}`;
+// joueurs par ordre alphabétique, pour l'affichage uniquement : l'ordre enregistré, qui fixe
+// la couleur par défaut de chacun, reste inchangé
+const playersAZ=()=>DB.players.slice().sort((a,b)=>a.name.localeCompare(b.name,'fr',{sensitivity:'base'}));
+// dégradé faible → fort des barres de séries : remplacez ces trois codes pour changer les couleurs
+const HEAT=['#8FE22B','#FFD60A','#FF1FA5'];   // vert pomme, jaune, magenta
+function heat(v,lo,hi){
+  const t=Math.max(0,Math.min(1,(v-lo)/(hi-lo))), k=t<.5?0:1, u=t<.5?t*2:(t-.5)*2;
+  const A=HEAT[k].match(/\w\w/g).map(x=>parseInt(x,16)), B=HEAT[k+1].match(/\w\w/g).map(x=>parseInt(x,16));
+  return `rgb(${A.map((a,i)=>Math.round(a+(B[i]-a)*u)).join(',')})`;
+}
+const heatBar=(lo,hi)=>`linear-gradient(90deg,${HEAT[0]} 0%,${HEAT[1]} 50%,${HEAT[2]} 100%)`;
+function yearWinnerStats(y,w){
+  if(!w||histYear(y)) return null;
+  const st=engine(+y).st[w], ap=annualPts(+y)[w];
+  return st&&ap?{wins:st.wins,pts:ap.total}:null;
+}
+function serieWinnerStats(x,w){
+  if(!w||x.hist) return null;
+  const r=serieRank(x)[0];
+  const wins=DB.matches.filter(m=>m.seriesId===x.id&&compte(m)&&m.results.some(q=>q.playerId===w&&q.rank===1)).length;
+  return r?{wins,pts:r.total}:null;
+}
+const wsLine=ws=>ws?`<b style="color:var(--txt)">${Math.round(ws.pts)} pts</b> · ${plur(ws.wins,'victoire')}`:'';
+function rPalm(){
+  const now=String(new Date().getFullYear());
+  // années terminées + saison en cours (leader provisoire), de la plus récente à la plus ancienne
+  const ys=new Set(titleYears());
+  if(!histYear(now) && sortedMatches(now).length) ys.add(now);
+  const yl=[...ys].sort().reverse();
+  $('#plYears').innerHTML= !yl.length?'<div class="empty">Aucune saison terminée ni saisie pour l\'instant.</div>' :
+   yl.map(y=>{const w=seasonTitle(y), h=histYear(y), cours=(y===now&&!h);
+     const second = h ? h.ranking[1] : null;
+     return `<div class="item" style="align-items:center"><div style="font-size:17px;font-weight:600;width:48px;font-variant-numeric:tabular-nums;color:${cours?'var(--muted)':'var(--txt)'}">${y}</div>
+       <div style="flex:0 0 auto;opacity:${cours?.45:1}">${mdo(28)}</div>
+       <div class="g"><div class="t" style="font-size:14px">${w?`<span style="color:${pColor(w)}">●</span> ${esc(pName(w))}`:'<span style="color:var(--dim)">non attribué</span>'}
+         ${cours?'<span class="tag open">en cours</span>':''}${h?'<span class="tag">historique</span>':''}</div>
+       <div class="s">${(()=>{ const ws=yearWinnerStats(y,w);
+         if(h) return [h.winWins!=null?`<b style="color:var(--txt)">${plur(h.winWins,'victoire')}</b>`:'', h.nGames?h.nGames+' parties':'', 'classement saisi'].filter(Boolean).join(' · ');
+         return (ws?wsLine(ws):'')+(cours?' · leader provisoire':''); })()}</div></div></div>`;}).join('');
+
+  const honor=DB.players.map(p=>({p,ti:titlesOf(p.id),sw:seriesWonBy(p.id)}))
+    .filter(x=>x.ti.length||x.sw.length)
+    .sort((a,b)=>b.ti.length-a.ti.length||b.sw.length-a.sw.length||a.p.name.localeCompare(b.p.name));
+  $('#plHonor').innerHTML= !honor.length?'<div class="empty">Aucun titre ni série gagnée pour l\'instant.</div>' :
+   `<table><thead><tr><th class="pos"></th><th>Joueur</th><th class="num">Meeple d'Or</th><th class="num">Séries</th></tr></thead><tbody>`+
+   honor.map((x,i)=>`<tr class="${i===0?'p1':''}"><td class="pos">${i+1}</td>
+     <td><span style="color:${pColor(x.p.id)}">●</span> ${esc(x.p.name)}
+       ${x.ti.length?`<div style="font-size:10.5px;color:var(--gold);margin-top:2px">${x.ti.join(' · ')}</div>`:''}</td>
+     <td class="num elo">${x.ti.length?`<span style="display:inline-flex;align-items:center;gap:4px">${x.ti.length}${mdo(15)}</span>`:'<span style="color:var(--dim)">—</span>'}</td>
+     <td class="num elo">${x.sw.length||'<span style="color:var(--dim)">—</span>'}</td></tr>`).join('')+'</tbody></table>';
+
+  const sl=seriesSorted().filter(x=>serieWinner(x));
+  $('#plSeries').innerHTML= !sl.length?'<div class="empty">Aucune série terminée.</div>' :
+   sl.map(x=>{const w=serieWinner(x), y=serieSeason(x);
+     return `<div class="item"><div class="g"><div class="t">${esc(x.name)}
+       ${x.hist?'<span class="tag">historique</span>':x.status==='open'?'<span class="tag open">en cours</span>':''}${x.noYear?'<span class="tag warn">hors Meeple d\'Or</span>':''}</div>
+       <div class="s">${y?'saison '+y+' · ':''}${serieN(x)?serieN(x)+' parties':''}${seriePoids(x)!==null?' · poids '+seriePoids(x).toFixed(2):''}</div></div>
+       <div style="text-align:right;flex:0 0 auto"><div class="t">🏆 <span style="color:${pColor(w)}">●</span> ${esc(pName(w))}</div>
+       <div class="s">${(()=>{ const ws=serieWinnerStats(x,w);
+         if(ws) return wsLine(ws)+(x.status==='open'?' · provisoire':'');
+         const hw=histWinnerWins(x);
+         return (hw!=null?`<b style="color:var(--txt)">${plur(hw,'victoire')}</b> · `:'')+'classement saisi'; })()}</div></div></div>`;}).join('');
+}
+function rStat(){
+  const sc=stScope==='year'?year:null;
+  const {R,st}=engine(sc), sw=serieWins(sc), aw=seasonWins();
+  const cs=combStats(st,sc);
+  const ids=Object.keys(cs).sort((a,b)=>((cs[b].rate??-1)-(cs[a].rate??-1))||cs[b].J-cs[a].J);
+  const anyH=ids.some(id=>cs[id].hJ||cs[id].hV);
+  const dont=(n)=>n?`<div class="hx">dont ${n} hist.</div>`:'';
+  $$('[data-sc]').forEach(b=>b.classList.toggle('on',b.dataset.sc===stScope));
+  $('#stTable').innerHTML= !ids.length?'<div class="empty">Aucune partie.</div>' :
+   `<table><thead><tr><th class="pos"></th><th>Joueur</th><th class="num">J</th><th class="num">V</th><th class="num">%</th><th class="num">Séries</th><th class="num">Saisons</th></tr></thead><tbody>`+
+   ids.map((id,i)=>{const c=cs[id]; return `<tr class="${i===0?'p1':''}"><td class="pos">${i+1}</td>
+    <td><span style="color:${pColor(id)}">●</span> ${esc(pName(id))}${P(id).main?' ★':''}</td>
+    <td class="num">${c.J}${dont(c.hJ)}</td><td class="num">${c.V}${dont(c.hV)}</td>
+    <td class="num elo">${c.rate!=null?Math.round(100*c.rate)+'%':'—'}</td>
+    <td class="num">${sw[id]||0}</td><td class="num">${stScope==='year'?'—':(aw[id]||0)}</td></tr>`;}).join('')+'</tbody></table>'+
+   (anyH?`<div class="hint">Parties et victoires additionnent l'appli et les séries historiques ; « hist. » en donne la part. Le taux ne compte que des victoires dont les parties sont connues, pour ne pas être faussé.</div>`:'');
+
+  const ms=sortedMatches(sc), byG={};
+  ms.forEach(m=>{const g=byG[m.gameId]=byG[m.gameId]||{n:0,h:0,first:m.date,last:m.date,players:new Set()};
+    g.n++; if(m.date<g.first)g.first=m.date; if(m.date>g.last)g.last=m.date;
+    m.results.forEach(r=>g.players.add(r.playerId));});
+  // parties jouées avant l'appli : seulement sur « Depuis le début », faute de date par partie
+  if(!sc) DB.games.forEach(g=>{ const h=+g.histN||0; if(!h&&!g.histFirst) return;
+    const d=byG[g.id]=byG[g.id]||{n:0,h:0,first:null,last:null,players:new Set()};
+    d.h=h; d.n+=h; if(g.histFirst&&(!d.first||g.histFirst<d.first)) d.first=g.histFirst; });
+  const gk=Object.keys(byG).filter(id=>byG[id].n>0).sort((a,b)=>byG[b].n-byG[a].n||gById(a).name.localeCompare(gById(b).name));
+  const tot=gk.reduce((a,id)=>a+byG[id].n,0), totH=gk.reduce((a,id)=>a+byG[id].h,0);
+  const wsum=gk.reduce((a,id)=>a+gw(gById(id))*byG[id].n,0);
+  $('#gKpi').innerHTML=`<div><b>${tot}</b><span>parties${totH?` · dont ${totH} hist.`:''}</span></div>
+    <div><b>${gk.length}</b><span>jeux différents</span></div>
+    <div><b>${gk.length?(tot/gk.length).toFixed(1):'—'}</b><span>parties / jeu</span></div>
+    <div><b>${tot?(wsum/tot).toFixed(2):'—'}</b><span>poids moyen</span></div>`;
+  $('#gStat').innerHTML= !gk.length?'<div class="empty">Aucune partie.</div>' :
+   `<table><thead><tr><th class="pos"></th><th>Jeu</th><th class="num">Poids</th><th class="num">1re fois</th><th class="num">Parties</th></tr></thead><tbody>`+
+   gk.map((id,i)=>{const g=gById(id),d=byG[id];
+    return `<tr class="${i===0?'p1':''}"><td class="pos">${i+1}</td>
+     <td>${esc(g.name)}</td>
+     <td class="num" style="color:var(--muted)">${+g.weight>0?(+g.weight).toFixed(2):'—'}</td>
+     <td class="num" style="color:var(--muted)">${d.first?fdate(d.first):'—'}</td>
+     <td class="num elo">${d.n}${d.h?`<div class="hx">dont ${d.h} hist.</div>`:''}</td></tr>`;}).join('')+'</tbody></table>'+
+   (!sc&&totH?`<div class="hint">Les parties jouées avant l'appli (saisies dans l'onglet Jeux) sont comptées ici, mais pas en vue « Année » : elles n'ont pas de date.</div>`:'');
+
+  // séries : nombre de parties et poids moyen, une ligne par série ;
+  // la couleur dit « faible → fort » : ≤ 4 parties vert, ≥ 15 magenta ; poids 1 vert, ≥ 3,5 magenta
+  const sl=seriesSorted().filter(x=>!sc||serieInYear(x,sc)).map(x=>({x,n:serieN(x),w:seriePoids(x)})).filter(r=>r.n||r.w!==null);
+  const nMax=Math.max(1,...sl.map(r=>r.n));
+  $('#stSeries').innerHTML= !sl.length?'<div class="empty">Aucune série.</div>' :
+   `<div class="sx"><div class="sx-r sx-h"><div></div><div>Parties</div><div>Poids BGG moyen</div></div>`+
+   sl.map(r=>`<div class="sx-r">
+     <div class="sx-n">${esc(r.x.name)}${r.x.hist?'<span class="tag">hist.</span>':r.x.status==='open'?'<span class="tag open">en cours</span>':''}</div>
+     <div class="sx-b" title="${esc(r.x.name)} : ${r.n} partie${r.n>1?'s':''}"><span class="trk"><i style="width:${r.n/nMax*100}%;background:${heat(r.n,4,15)}"></i></span><em>${r.n||'—'}</em></div>
+     <div class="sx-b" title="${esc(r.x.name)} : poids moyen ${r.w!==null?r.w.toFixed(2):'inconnu'}"><span class="trk">${r.w!==null?`<i style="width:${r.w/5*100}%;background:${heat(r.w,1,3.5)}"></i>`:''}</span><em>${r.w!==null?r.w.toFixed(2):'<span style="color:var(--dim)">—</span>'}</em></div>
+   </div>`).join('')+
+   `<div class="sx-r sx-ax"><div></div><div><span>0</span><span>${nMax}</span></div><div><span>0</span><span>5</span></div></div>`+
+   `<div class="sx-r sx-lg"><div>faible → fort</div>
+      <div><i style="background:${heatBar()}"></i><span><b>≤ 4</b><b>15 +</b></span></div>
+      <div><i style="background:${heatBar()}"></i><span><b>1</b><b>3,5 +</b></span></div></div></div>`;
+
+  const D=duelStats(sc), mains=DB.players.filter(p=>p.main).map(p=>p.id);
+  const rows=Object.values(D).filter(o=>mains.includes(o.a)&&mains.includes(o.b)).sort((x,y)=>y.n-x.n);
+  $('#stDuels').innerHTML= !mains.length? '<div class="empty">Aucun joueur principal marqué.</div>'
+   : !rows.length? '<div class="empty">Aucune confrontation enregistrée.</div>' : rows.map(o=>bar(o)).join('');
+
+  const opts=DB.players.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  const a=$('#dA').value,b=$('#dB').value;
+  $('#dA').innerHTML='<option value="">—</option>'+opts; $('#dB').innerHTML='<option value="">—</option>'+opts;
+  $('#dA').value=a||'';$('#dB').value=b||'';
+  duelOut();
+}
+function bar(o){
+  const tot=o.n||1, pa=o.wa/tot*100, pb=o.wb/tot*100, pd=o.d/tot*100;
+  return `<div class="duel"><div class="dl">
+    <span class="a" style="color:${pColor(o.a)}">${esc(pName(o.a))}${P(o.a).main?' ★':''}</span>
+    <span class="c">${o.n} duel${o.n>1?'s':''}${o.d?' · '+o.d+' nul'+(o.d>1?'s':''):''}</span>
+    <span class="b" style="color:${pColor(o.b)}">${P(o.b).main?'★ ':''}${esc(pName(o.b))}</span></div>
+   <div class="bar">
+    <span style="width:${pa}%;background:${pColor(o.a)}">${pa>=14?Math.round(pa)+'%':''}</span>
+    ${pd?`<span class="n" style="width:${pd}%"></span>`:''}
+    <span class="r" style="width:${pb}%;background:${pColor(o.b)}">${pb>=14?Math.round(pb)+'%':''}</span></div></div>`;
+}
+function duelOut(){
+  const a=$('#dA').value,b=$('#dB').value;
+  if(!a||!b||a===b){$('#dOut').innerHTML='<div class="empty">Choisissez deux joueurs différents.</div>';return;}
+  const sc=stScope==='year'?year:null, k=[a,b].sort().join('|'), o=duelStats(sc)[k];
+  if(!o){$('#dOut').innerHTML='<div class="empty">Ces deux joueurs ne se sont jamais rencontrés.</div>';return;}
+  const ms=sortedMatches(sc).filter(m=>m.results.some(r=>r.playerId===a)&&m.results.some(r=>r.playerId===b)).reverse().slice(0,8);
+  $('#dOut').innerHTML=bar(o)+
+   `<div class="sep"></div><div class="hint" style="color:var(--muted);margin:0 0 6px">Dernières rencontres</div>`+
+   ms.map(m=>{const ra=m.results.find(r=>r.playerId===a).rank, rb=m.results.find(r=>r.playerId===b).rank;
+    const w=ra<rb?a:ra>rb?b:null;
+    return `<div class="item"><div class="g"><div class="t">${esc(gById(m.gameId).name)} <span class="tag">${m.results.length} j.</span></div>
+     <div class="s">${fdate(m.date)} · ${w?`<span style="color:${pColor(w)}">${esc(pName(w))} devant</span>`:'ex æquo'} (${ra}<sup>e</sup> / ${rb}<sup>e</sup>)</div></div></div>`;}).join('');
+}
+function rMatch(){
+  if(!$('#mDate').value)$('#mDate').value=new Date().toISOString().slice(0,10);
+  const open=DB.series.filter(s=>s.status==='open');
+  $('#mSerie').innerHTML='<option value="">Hors série</option>'+seriesSorted().filter(s=>!s.hist).map(s=>`<option value="${s.id}">${esc(s.name)}${s.status==='closed'?' (clôturée)':''}</option>`).join('');
+  // « Hors série » est un choix explicite ('') ; seule une nouvelle partie sans choix prend la série ouverte
+  if(!('serieId' in draft)) draft.serieId = open.length===1 ? open[0].id : '';
+  $('#mSerie').value = draft.serieId||'';
+  if($('#mSerie').value!==(draft.serieId||'')) { draft.serieId=''; $('#mSerie').value=''; }
+  $('#mGame').innerHTML='<option value="">— choisir —</option>'+DB.games.slice().sort((a,b)=>a.name.localeCompare(b.name))
+    .map(g=>`<option value="${g.id}">${esc(g.name)} (${g.weight?(+g.weight).toFixed(2):'?'})</option>`).join('');
+  $('#mGame').value=draft.gameId||''; updW();
+  $('#mCount').checked = draft.off!==true;
+  drawChips(); drawOrder();
+  $('#mFormTitle').textContent=draft.id?'Modifier la partie':'Nouvelle partie';
+  const ms=DB.matches.slice().sort((a,b)=> a.date===b.date?(b.seq||0)-(a.seq||0) : a.date<b.date?1:-1);
+  const MD=engine(null).md;
+  $('#mList').innerHTML= !ms.length?'<div class="empty">Aucune partie enregistrée.</div>' : ms.map(m=>{
+    const s=DB.series.find(x=>x.id===m.seriesId), g=gById(m.gameId);
+    const ord=m.results.slice().sort((a,b)=>a.rank-b.rank);
+    const pts=m.off?null:matchPts(m), el=m.off?null:MD[m.id];
+    const ex=r=>m.results.filter(x=>x.rank===r).length>1;
+    return `<div class="item"><div class="g">
+     <div class="t">${esc(g.name)} <span class="tag">${g.weight?(+g.weight).toFixed(2):'?'}</span>${s?`<span class="tag">${esc(s.name)}</span>`:'<span class="tag">hors série</span>'}${m.off?'<span class="tag warn">hors classement</span>':(!inYearCount(m)?'<span class="tag warn">hors Meeple d\'Or</span>':'')}</div>
+     <div class="s">${fdate(m.date)} · ${ord.length} joueurs</div>
+     <table class="mt"><tbody>${ord.map(r=>{ const e=el&&el[r.playerId];
+       return `<tr><td class="k ${r.rank===1?'w':''}">${r.rank}${ex(r.rank)?'=':''}</td>
+         <td class="nm"><span style="color:${pColor(r.playerId)}">●</span> ${esc(pName(r.playerId))}</td>
+         <td class="num" ${pts&&!inYearCount(m)?'style="color:var(--dim);text-decoration:line-through"':''}>${pts?`${pts[r.playerId].toFixed(1)}<span class="u"> pts</span>`:'<span class="u">—</span>'}</td>
+         <td class="num ${e?(e.d>.05?'up':e.d<-.05?'down':'flat'):''}">${e?`${e.d>=0?'+':''}${e.d.toFixed(1)}`:'<span class="u">—</span>'}</td>
+         <td class="num u">${e?Math.round(e.after):''}</td></tr>`;}).join('')}</tbody></table></div>
+     <button class="mini ${m.off?'off':''}" data-om="${m.id}" title="${m.off?'Réintégrer aux classements':'Exclure des classements'}">⊘</button>
+     <button class="mini" data-em="${m.id}">✎</button><button class="mini" data-dm="${m.id}">✕</button></div>`;}).join('');
+}
+function drawChips(){
+  $('#mChips').innerHTML= !DB.players.length?'<div class="empty">Ajoutez des joueurs d\'abord.</div>' :
+    DB.players.map(p=>`<span class="chip ${draft.order.some(o=>o.pid===p.id)?'on':''}" data-p="${p.id}">${esc(p.name)}</span>`).join('');
+}
+function updW(){const g=DB.games.find(x=>x.id===$('#mGame').value);
+  $('#mWeight').textContent=g?(g.weight?'· poids '+(+g.weight).toFixed(2):'· poids manquant → '+DB.settings.ref):'';}
+function drawOrder(){
+  const o=draft.order; $('#mHint').style.display=o.length?'block':'none';
+  let rk=0;
+  $('#mOrder').innerHTML=o.map((e,i)=>{
+    if(i===0)rk=1; else if(!e.tie)rk=i+1;
+    const r=rk;
+    return `<li class="${r===1?'first':''}"><span class="rk">${r}</span><span class="nm">${esc(pName(e.pid))}</span>
+     <button class="mini ${e.tie?'sel':''}" data-tie="${i}" ${i===0?'disabled style="opacity:.3"':''}>=</button>
+     <button class="mini" data-up="${i}" ${i===0?'disabled style="opacity:.3"':''}>↑</button>
+     <button class="mini" data-dn="${i}" ${i===o.length-1?'disabled style="opacity:.3"':''}>↓</button></li>`;}).join('');
+}
+function ranksFromOrder(){let rk=1,out=[];
+  draft.order.forEach((e,i)=>{ if(i===0)rk=1; else if(!e.tie)rk=i+1; out.push({playerId:e.pid,rank:rk}); });
+  return out;}
+// date de référence d'une série pour le tri : sa dernière partie, sinon sa date de fin
+// ou de début saisie, sinon rien — une série encore vide reste en tête
+function serieLast(s){
+  const d=DB.matches.filter(m=>m.seriesId===s.id).map(m=>m.date).sort();
+  return d.length? d[d.length-1] : (s.end||s.start||(s.season?s.season+'-12-31':'9999-12-31'));
+}
+const seriesSorted=()=>DB.series.slice().sort((a,b)=>{
+  const x=serieLast(a),y=serieLast(b);
+  return x===y? 0 : (x<y?1:-1); });
+// poids BGG moyen des parties comptabilisées d'une série
+function seriePoids(s){
+  if(s.hist) return (+s.avgWeight>0)? +s.avgWeight : null;
+  const ms=DB.matches.filter(m=>m.seriesId===s.id&&compte(m));
+  if(!ms.length)return null;
+  return ms.reduce((a,m)=>a+gw(gById(m.gameId)),0)/ms.length;
+}
+function serieDates(s){
+  const d=DB.matches.filter(m=>m.seriesId===s.id).map(m=>m.date).sort();
+  const a=s.start||d[0], b=s.end||d[d.length-1];
+  if(!a)return '';
+  return a===b? 'le '+fdate(a) : 'du '+fdate(a)+' au '+fdate(b);
+}
+function rHist(){
+  const k=hForm.kind, ed=!!hForm.id;
+  const cur = ed ? (k==='serie'? DB.series.find(x=>x.id===hForm.id) : DB.histYears.find(x=>x.id===hForm.id)) : null;
+  const v=(f,d='')=>cur&&cur[f]!=null?cur[f]:d;
+  let h=`<h2 style="display:flex;align-items:center;gap:8px">${ed?'Modifier l\'historique':'Saisir l\'historique'}<span style="flex:1"></span>
+    <span class="seg"><button data-hk="serie" class="${k==='serie'?'on':''}" ${ed?'disabled':''}>Série passée</button><button data-hk="year" class="${k==='year'?'on':''}" ${ed?'disabled':''}>Année passée</button></span></h2>`;
+  if(k==='serie') h+=`
+    <div class="row"><div style="flex:2"><label>Nom</label><input type="text" id="hsName" value="${esc(v('name'))}" placeholder="Série hiver 2024"></div>
+      <div><label>Saison</label><input type="number" id="hsSeason" step="1" value="${v('season')}" placeholder="2024"></div></div>
+    <div class="row"><div><label>Début</label><input type="date" id="hsStart" value="${v('start')}"></div>
+      <div><label>Fin</label><input type="date" id="hsEnd" value="${v('end')}"></div></div>
+    <div class="row"><div><label>Nombre de parties</label><input type="number" id="hsN" min="0" step="1" value="${v('nGames')}"></div>
+      <div><label>Poids BGG moyen</label><input type="number" id="hsW" min="1" max="5" step="0.01" value="${v('avgWeight')}"></div>
+</div>`;
+  else h+=`
+    <div class="row"><div><label>Année</label><input type="number" id="hyYear" step="1" value="${v('year')}" placeholder="2025"></div>
+      <div><label>Nombre de parties</label><input type="number" id="hyN" min="0" step="1" value="${v('nGames')}"></div>
+      <div><label>Nombre de séries</label><input type="number" id="hyS" min="0" step="1" value="${v('nSeries')}"></div></div>
+    <div class="row"><div><label>Victoires du vainqueur</label><input type="number" id="hyV" min="0" step="1" value="${v('winWins')}"></div><div></div><div></div></div>`;
+  h+=`<label>Classement final — touchez les joueurs dans l'ordre, du 1er au dernier</label>
+    <div class="chips" id="hChips"></div><ol class="ord" id="hOrd"></ol>
+    <div class="sep"></div>
+    <div class="btns"><button class="btn" data-hsave="1">${ed?'Enregistrer':'Ajouter'}</button>
+      <button class="btn sec" data-hcancel="1">${ed?'Annuler':'Effacer'}</button>
+      ${ed?`<button class="btn danger" data-hdel="1">Supprimer</button>`:''}</div>
+    <div class="hint">${k==='serie'
+      ?'Une série passée n\'a pas de parties détaillées : elle compte pour le palmarès — séries gagnées, fiche joueur, synthèse — mais pas pour l\'Elo ni les points, dont le barème différait. Elle apparaît parmi les autres séries, marquée « historique ».'
+      :'Une année passée fait autorité : son vainqueur détient le Meeple d\'Or de cette année-là, même si des parties y sont aussi enregistrées. Elle apparaît dans le sélecteur d\'année.'}</div>`;
+  const hy=(DB.histYears||[]).slice().sort((a,b)=>b.year-a.year);
+  if(k==='year'&&hy.length&&!ed) h+=`<div class="sep"></div><label>Années saisies</label>`+hy.map(x=>`<div class="item"><div class="g">
+      <div class="t">${x.year} ${mdo(14,'margin-left:4px')} ${x.ranking[0]?esc(pName(x.ranking[0])):'—'}</div>
+      <div class="s">${x.winWins!=null?plur(x.winWins,'victoire')+' · ':''}${x.ranking.length} joueurs classés${x.nGames?' · '+x.nGames+' parties':''}${x.nSeries?' · '+x.nSeries+' séries':''}</div></div>
+      <button class="mini" data-hey="${x.id}">✎</button></div>`).join('');
+  $('#histCard').innerHTML=h;
+  drawHOrder();
+}
+// seule la zone de classement se redessine : les champs déjà saisis restent intacts
+function psFromForm(o){ const out={};
+  o.forEach(id=>{ const x=(hForm.ps||{})[id]||{}; const w=x.w, g=x.g;
+    if(w!=null||g!=null) out[id]={w:w!=null?w:null,g:g!=null?g:null}; });
+  return out; }
+function drawHOrder(){
+  const o=hForm.order, isS=hForm.kind==='serie'; hForm.ps=hForm.ps||{};
+  const val=(id,k)=>{const v=(hForm.ps[id]||{})[k]; return v==null?'':v;};
+  $('#hChips').innerHTML=DB.players.map(p=>`<span class="chip ${o.includes(p.id)?'on':''}" data-hp="${p.id}">${esc(p.name)}</span>`).join('')
+    ||'<div class="empty">Ajoutez d\'abord les joueurs dans l\'onglet Joueurs.</div>';
+  $('#hOrd').innerHTML=(isS&&o.length?`<li class="hps-h"><span class="rk"></span><span class="nm"></span><span class="hps">Vict.</span><span class="hps">Parties</span><button class="mini" tabindex="-1" style="visibility:hidden">↑</button><button class="mini" tabindex="-1" style="visibility:hidden">↓</button></li>`:'')+
+   o.map((id,i)=>`<li class="${i===0?'first':''}"><span class="rk">${i+1}</span><span class="nm">${esc(pName(id))}</span>
+    ${isS?`<input class="hps" type="number" min="0" step="1" inputmode="numeric" data-hpw="${id}" value="${val(id,'w')}" placeholder="—">
+           <input class="hps" type="number" min="0" step="1" inputmode="numeric" data-hpg="${id}" value="${val(id,'g')}" placeholder="—">`:''}
+    <button class="mini" data-hu="${i}" ${i===0?'disabled style="opacity:.3"':''}>↑</button>
+    <button class="mini" data-hd="${i}" ${i===o.length-1?'disabled style="opacity:.3"':''}>↓</button></li>`).join('');
+}
+function openHist(kind,id){
+  const cur = id ? (kind==='serie'? DB.series.find(x=>x.id===id) : DB.histYears.find(x=>x.id===id)) : null;
+  hForm={kind,id:id||null,order:cur?(cur.ranking||[]).slice():[],ps:{}};
+  if(cur&&kind==='serie'){ Object.entries(cur.pstats||{}).forEach(([k,v])=>hForm.ps[k]={...v});
+    const w=(cur.ranking||[])[0]; if(w&&cur.winWins!=null&&!(hForm.ps[w]&&hForm.ps[w].w!=null)) hForm.ps[w]={...(hForm.ps[w]||{g:null}),w:cur.winWins}; }
+  if(view!=='serie'){ $$('nav button').forEach(x=>x.classList.toggle('on',x.dataset.v==='serie'));
+    $$('main section').forEach(x=>x.classList.toggle('on',x.id==='v-serie')); view='serie'; }
+  render(); $('#histCard').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function rSerie(){
+  rHist();
+  $('#sList').innerHTML= !DB.series.length?'<div class="card"><div class="empty">Aucune série.</div></div>' :
+  seriesSorted().map(s=>{
+    const r=serieRank(s), n=serieN(s);
+    if(s.hist) return `<div class="card"><h2 style="display:flex;align-items:center;gap:6px">${esc(s.name)}
+     <span class="tag">historique</span><span style="flex:1"></span><button class="mini" data-hs="${s.id}">✎</button></h2>
+     <div class="hint" style="margin:0 0 8px">${n?n+' partie'+(n>1?'s':'')+' · ':''}${seriePoids(s)!==null?`poids moyen <b>${seriePoids(s).toFixed(2)}</b> · `:''}${serieDates(s)?serieDates(s)+' · ':''}${s.season?'<b>saison '+s.season+'</b> · ':''}classement saisi à la main</div>
+     ${r.length?`<table><thead><tr><th class="pos"></th><th>Joueur</th><th class="num">V</th><th class="num">Parties</th></tr></thead><tbody>`+
+      r.map((x,i)=>{const q=hps(s,x.id), w=q.w!=null?q.w:(i===0&&s.winWins!=null?s.winWins:null);
+        return `<tr class="${i===0?'p1':''}"><td class="pos">${i+1}</td><td><span style="color:${pColor(x.id)}">●</span> ${esc(pName(x.id))}${i===0?' <span class="tag w">🏆</span>':''}</td>
+        <td class="num">${w!=null?w:'<span style="color:var(--dim)">—</span>'}</td><td class="num" style="color:var(--muted)">${q.g!=null?q.g:'—'}</td></tr>`;}).join('')+'</tbody></table>'
+      :'<div class="empty">Aucun classement saisi.</div>'}</div>`;
+    if(sEdit===s.id) return `<div class="card"><h2>Modifier la série</h2>
+      <div class="row"><div><label>Nom</label><input type="text" id="sfName" value="${esc(s.name)}"></div></div>
+      <div class="row">
+        <div><label>Début</label><input type="date" id="sfStart" value="${s.start||''}"></div>
+        <div><label>Fin</label><input type="date" id="sfEnd" value="${s.end||''}"></div>
+      </div>
+      <div class="row">
+        <div><label>Meilleurs X résultats</label><input type="number" id="sfBest" min="1" value="${s.best||''}" placeholder="toutes"></div>
+        <div><label>Saison de classement</label><input type="number" id="sfSeason" step="1" value="${s.season||''}" placeholder="auto"></div>
+        <div><label>État</label><select id="sfStatus"><option value="open"${s.status==='open'?' selected':''}>En cours</option><option value="closed"${s.status==='closed'?' selected':''}>Clôturée</option></select></div>
+      </div>
+      <label class="chk" style="margin-bottom:10px"><input type="checkbox" id="sfYear" ${s.noYear?'':'checked'}><span>Compte pour le Meeple d'Or de l'année</span></label>
+      <div class="btns"><button class="btn" data-sok="${s.id}">Enregistrer</button><button class="btn sec" data-scancel="1">Annuler</button></div>
+      <div class="hint"><b>Saison</b> : année de classement à laquelle toutes les parties de la série sont rattachées, quelle que soit leur date — une série à cheval sur décembre et janvier compte alors dans une seule année. Vide = chaque partie compte dans l'année de sa date.<br>Les dates de début et de fin restent indicatives : l'appartenance d'une partie à la série se décide à sa saisie. Laissées vides, elles se déduisent des parties (${serieDates(s)||'aucune partie'}).</div></div>`;
+    return `<div class="card"><h2 style="display:flex;align-items:center;gap:6px">${esc(s.name)}
+     <span class="tag ${s.status}">${s.status==='open'?'en cours':'clôturée'}</span>${s.noYear?'<span class="tag warn">hors Meeple d\'Or</span>':''}
+     <span style="flex:1"></span><button class="mini" data-es="${s.id}">✎</button></h2>
+     <div class="hint" style="margin:0 0 8px">${n} partie${n>1?'s':''} · ${seriePoids(s)!==null?`poids moyen <b>${seriePoids(s).toFixed(2)}</b> · `:''}${s.best?'meilleurs '+s.best+' résultats':'toutes les parties comptées'}${serieDates(s)?' · '+serieDates(s):''}${s.season?' · <b>saison '+s.season+'</b>':''}</div>
+     ${r.length?`<table><thead><tr><th class="pos"></th><th>Joueur</th><th class="num">Total</th><th class="num">Retenues</th></tr></thead><tbody>`+
+      r.map((x,i)=>`<tr class="${i===0?'p1':''}"><td class="pos">${i+1}</td><td>${esc(pName(x.id))}${i===0?' <span class="tag w">🏆</span>':''}</td>
+       <td class="num elo">${Math.round(x.total)}</td><td class="num" style="color:var(--muted)">${x.kept}/${x.played}</td></tr>`).join('')+'</tbody></table>'
+      :'<div class="empty">Aucune partie dans cette série.</div>'}
+     <div class="sep"></div><div class="btns">
+      <button class="btn sec" data-toggle="${s.id}">${s.status==='open'?'Clôturer':'Rouvrir'}</button>
+      <button class="btn sec" data-es="${s.id}">Modifier</button>
+      <button class="btn danger" data-ds="${s.id}">Supprimer</button></div></div>`;}).join('');
+}
+let gEdit=null;
+function rGame(){
+  $$('[data-gf]').forEach(b=>b.classList.toggle('on',b.dataset.gf===gFilter));
+  let gs=DB.games.slice().sort((a,b)=>a.name.localeCompare(b.name));
+  if(gFilter==='nw')gs=gs.filter(g=>!(+g.weight>0));
+  $('#gList').innerHTML= !gs.length?'<div class="empty">Aucun jeu.</div>' : gs.map(g=>{
+    const n=DB.matches.filter(m=>m.gameId===g.id).length, h=+g.histN||0;
+    if(gEdit===g.id) return `<div class="item" style="display:block">
+      <div class="row"><div style="flex:2"><label>Nom</label><input type="text" id="geName" value="${esc(g.name)}"></div>
+        <div><label>Poids BGG</label><input type="number" id="geW" min="1" max="5" step="0.01" value="${g.weight||''}" placeholder="inconnu"></div></div>
+      <div class="row"><div><label>Parties jouées avant l'appli</label><input type="number" id="geH" min="0" step="1" value="${g.histN||''}" placeholder="0"></div>
+        <div><label>Date de la 1re partie</label><input type="date" id="geF" value="${g.histFirst||''}"></div></div>
+      <div class="btns"><button class="btn" data-gok="${g.id}">Enregistrer</button><button class="btn sec" data-gcancel="1">Annuler</button></div>
+      <div class="hint">Pour des statistiques de jeux complètes sans ressaisir les anciennes parties : leur nombre s'ajoute aux parties enregistrées dans l'appli, et la date de 1re partie remplace celle de l'appli si elle est plus ancienne. Ces parties ne comptent ni pour l'Elo ni pour les points.</div></div>`;
+    return `<div class="item"><div class="g"><div class="t">${esc(g.name)}${!(+g.weight>0)?' <span class="tag warn">poids à saisir</span>':''}</div>
+     <div class="s">${+g.weight>0?'poids '+(+g.weight).toFixed(2):'poids inconnu → '+DB.settings.ref+' utilisé'} · ${n} partie${n>1?'s':''}${h?` · <span style="color:var(--txt)">+ ${h} avant l'appli</span>`:''}${g.histFirst?` · 1re le ${fdate(g.histFirst)}`:''}</div></div>
+     <button class="mini" data-eg="${g.id}">✎</button><button class="mini" data-dg="${g.id}">✕</button></div>`;}).join('');
+}
+// carrière : toutes les parties comptabilisées ; meilleure cote = pic sur l'ensemble des saisons
+function careerStats(){
+  const {st}=engine(null), peak={};
+  Object.keys(st).forEach(i=>peak[i]=st[i].peak);
+  return {st,peak};
+}
+function rPlayer(){
+  const {R,st,cp}=engine(year);
+  const car=careerStats();
+  const used={}; DB.players.forEach(p=>{const c=pColor(p.id).toLowerCase();used[c]=(used[c]||0)+1;});
+  $('#pList').innerHTML= !DB.players.length?'<div class="empty">Aucun joueur.</div>' :
+  playersAZ().map(p=>{
+    const c=pColor(p.id);
+    if(pEdit===p.id) return `<div class="item" style="display:block">
+      <div class="row"><div><label>Nom</label><input type="text" id="pfName" value="${esc(p.name)}"></div>
+       <div><label>Statut</label><select id="pfVet">
+         <option value="0"${p.vet?'':' selected'}>Nouveau — calibration active</option>
+         <option value="1"${p.vet?' selected':''}>Confirmé — jamais calibré</option>
+       </select></div></div>
+      <label>Couleur</label>
+      <div class="sw">${COLORS.map(x=>`<button data-pc="${x}" class="${x.toLowerCase()===c.toLowerCase()?'on':''}" style="background:${x}" title="${x}"></button>`).join('')}
+       <label class="sw-cust" title="Couleur personnalisée"><input type="color" id="pfColor" value="${c}"><span style="background:${c}"></span></label></div>
+      <div class="hint" id="pfWarn" style="margin-top:8px"></div>
+      <div class="hint">« Confirmé » convient aux joueurs dont vous connaissez déjà le niveau avant la mise en place de l'appli : leur cote évoluera au rythme normal dès leur première partie saisie. « Nouveau » réserve la calibration accélérée à ceux qui débutent vraiment.</div>
+      <div class="btns" style="margin-top:10px"><button class="btn" data-pok="${p.id}">Enregistrer</button>
+       <button class="btn sec" data-pcancel="1">Annuler</button>
+       ${p.color?`<button class="btn sec" data-preset="${p.id}">Couleur par défaut</button>`:''}</div></div>`;
+    const np=cp[p.id]||0, cal=enCalib(p.id,np);
+    return `<div class="item"><div class="g"><div class="t"><span style="color:${c}">●</span> ${esc(p.name)}${p.vet?'':' <span class="tag">nouveau</span>'}${cal?` <span class="tag open">calibration ${np}/${DB.settings.newN}</span>`:''}${used[c.toLowerCase()]>1?' <span class="tag warn">couleur en double</span>':''}</div>
+     <div class="s">Saison ${year} : ${st[p.id]?`${st[p.id].played} partie${st[p.id].played>1?'s':''} · ${st[p.id].wins} victoire${st[p.id].wins>1?'s':''} · cote ${Math.round(R[p.id])}`:(R[p.id]!==undefined?'aucune partie · cote '+Math.round(R[p.id]):'aucune partie')}</div>
+     ${(()=>{ const c=car.st[p.id], ti=titlesOf(p.id), sw=seriesWonBy(p.id); let o='';
+       const cb=combStats(car.st,null)[p.id];
+       if(cb&&(cb.J||cb.V)) o+=`<div class="s">Carrière : ${cb.J} partie${cb.J>1?'s':''} · ${cb.V} victoire${cb.V>1?'s':''}${cb.rate!=null?' · '+Math.round(100*cb.rate)+' %':''}${cb.hJ||cb.hV?` <span style="color:var(--dim)">(dont ${cb.hJ} p. / ${cb.hV} v. historiques)</span>`:''}${c?` · meilleure cote <b style="color:var(--txt)">${Math.round(car.peak[p.id])}</b>`:''}</div>`;
+       if(ti.length) o+=`<div class="s" style="color:var(--gold);display:flex;align-items:center;gap:5px;margin-top:4px">${mdo(16)}<span><b>${ti.length}</b> Meeple d'Or — ${ti.join(', ')}</span></div>`;
+       if(sw.length) o+=`<div class="s" style="margin-top:3px">🏆 <b style="color:var(--txt)">${sw.length}</b> série${sw.length>1?'s':''} gagnée${sw.length>1?'s':''} — ${sw.map(x=>esc(x.name)).join(', ')}</div>`;
+       return o; })()}</div>
+     <button class="mini" data-ep="${p.id}" title="Couleur" style="background:${c};border-color:${c}"></button>
+     <button class="mini ${p.main?'on':''}" data-mp="${p.id}" title="Joueur principal">★</button>
+     <button class="mini" data-ep="${p.id}">✎</button><button class="mini" data-dp="${p.id}">✕</button></div>`;}).join('');
+}
+function rSet(){ if(RO) setTimeout(()=>$$('#v-set input, #v-set select').forEach(x=>x.disabled=true)); else rPub();
+  const S=DB.settings;$('#cStart').value=S.start;$('#cK').value=S.k;$('#cRef').value=S.ref;$('#cCapD').value=S.capDefault||21;
+  $('#cSize').value=S.sizeMode||'sqrt';$('#cNewN').value=S.newN;$('#cNewM').value=S.newMult;$('#cBonus').value=S.winBonus;$('#cCurve').value=S.curve;
+
+  scalePrev(); weightPrev();
+  $('#saveInfo').innerHTML='Chaque modification est enregistrée automatiquement dans ce navigateur.'+
+   (DB.savedAt?' Dernière sauvegarde exportée le '+DB.savedAt+'.':' Aucun export effectué pour l\'instant.')+
+   ' Exportez de temps en temps : effacer les données du navigateur supprimerait tout.';
+  audit();}
+// ce que rapporte une victoire selon le poids du jeu, avec les réglages en vigueur
+let wpN=4;
+function weightPrev(){
+  const el=$('#weightPrev'); if(!el) return;
+  const S=DB.settings, n=wpN, f=sizeF(n), rows=[1,1.5,2,2.5,3,3.5,4,4.5,5];
+  const pts=w=>ptsFor(1,1,1,w/S.ref,f), elo=w=>S.k*(w/S.ref)*f*0.5;
+  let h=`<div class="hint" style="margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">Ce que rapporte une victoire selon le poids du jeu, à
+    <span class="seg">${[2,3,4,5,6].map(k=>`<button data-wpn="${k}" class="${k===n?'on':''}">${k}</button>`).join('')}</span> joueurs :</div>
+    <table><thead><tr><th>Poids BGG</th><th class="num">Points du vainqueur</th><th class="num">Elo du vainqueur</th><th class="num">× poids 1</th></tr></thead><tbody>`;
+  rows.forEach(w=>{ h+=`<tr${Number.isInteger(w)?'':' style="color:var(--muted)"'}><td>${w.toFixed(1).replace('.',',')}</td>
+    <td class="num elo">${pts(w).toFixed(1).replace('.',',')}</td>
+    <td class="num up">+${elo(w).toFixed(1).replace('.',',')}</td>
+    <td class="num" style="color:var(--muted)">×${(w/1).toFixed(1).replace('.',',')}</td></tr>`; });
+  el.innerHTML=h+`</tbody></table><div class="hint">Strictement proportionnel : un jeu de poids 4 rapporte 4 fois un jeu de poids 1, en points comme en Elo. Elo calculé entre joueurs de cote égale, hors calibration des nouveaux. Les points incluent la prime de victoire et le facteur du nombre de joueurs.</div>`;
+}
+$('#weightPrev') && document.addEventListener('click',e=>{ const b=e.target.closest('[data-wpn]'); if(!b) return; wpN=+b.dataset.wpn; weightPrev(); });
+function scalePrev(){
+  const el=$('#scalePrev'); if(!el)return;
+  let h='<div class="hint" style="margin-top:2px">Barème résultant des points de série, sur un jeu au poids de référence :</div><table><tbody>';
+  [2,3,4,5,6].forEach(n=>{
+    const f=sizeF(n), l=[];
+    for(let r=1;r<=n;r++) l.push(`<span style="color:${r===1?'var(--gold)':'var(--txt)'}">${Math.round(ptsFor((n-r)/(n-1),r,1,1,f))}</span>`);
+    h+=`<tr><td style="color:var(--muted)">${n} joueurs</td><td class="num">${l.join(' · ')}</td></tr>`;});
+  el.innerHTML=h+'</tbody></table>';
+}
+function audit(){
+  const {R,st}=engine(year);
+  const ids=Object.keys(R), n=ids.length;
+  const sum=ids.reduce((a,i)=>a+R[i],0), exp=DB.settings.start*n, dif=sum-exp;
+  const ok=Math.abs(dif)<0.01;
+  const ms=sortedMatches(null).filter(m=>+seasonOf(m)<=+year);
+  const never=DB.players.filter(p=>R[p.id]===undefined).map(p=>p.name);
+  $('#audit').innerHTML=`<table><tbody>
+   <tr><td>Périmètre</td><td class="num">toutes les parties jusqu'à fin ${year}</td></tr>
+   <tr><td>Parties prises en compte</td><td class="num elo">${ms.length}</td></tr>
+   ${horsClt()?`<tr><td style="color:var(--red)">Amicales exclues (toutes saisons)</td><td class="num" style="color:var(--red)">${horsClt()}</td></tr>`:''}
+   <tr><td>Joueurs classés (ayant joué)</td><td class="num elo">${n}</td></tr>
+   <tr><td>Elo de départ</td><td class="num elo">${DB.settings.start}</td></tr>
+   <tr><td>Somme attendue</td><td class="num">${exp.toFixed(2)}</td></tr>
+   <tr><td>Somme constatée</td><td class="num">${sum.toFixed(2)}</td></tr>
+   <tr><td><b>Écart</b></td><td class="num elo" style="color:${ok?'var(--green)':'var(--red)'}">${dif>0?'+':''}${dif.toFixed(4)}</td></tr>
+   <tr><td>Cote moyenne</td><td class="num">${n?(sum/n).toFixed(1):'—'}</td></tr>
+   </tbody></table>
+   <div class="hint" style="margin-top:8px;color:${ok?'var(--green)':'var(--red)'}">${ok
+     ?'Système équilibré : aucun point créé ni perdu.'
+     :'Anomalie : '+Math.abs(dif).toFixed(2)+' points '+(dif<0?'manquants':'en trop')+'.'}</div>
+   ${n?`<div class="sep"></div><div class="hint" style="color:var(--muted)">Joueurs classés : ${ids.sort((a,b)=>R[b]-R[a]).map(i=>`${esc(pName(i))} ${Math.round(R[i])} <span style="color:var(--dim)">(${st[i]?st[i].played:0} p. en ${year})</span>`).join(' · ')}</div>`:''}
+   ${never.length?`<div class="hint" style="color:var(--dim)">Jamais joué sur ce périmètre, donc hors somme : ${esc(never.join(', '))}.</div>`:''}`;
+}
+
+/* ---------- CSV ---------- */
+const norm=s=>String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+const NAMEK=['objectname','name','nom','titre','title','jeu','game','nomdujeu','boardgame'];
+const WK=['avgweight','averageweight','weight','poids','complexite','difficulte','complexity','difficulty','bggweight','poidsbgg'];
+function parseCSV(text){
+  const first=(text.split(/\r?\n/)[0]||'');
+  const sep=[';','\t',','].map(s=>[s,first.split(s).length]).sort((a,b)=>b[1]-a[1])[0][0];
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; }
+    else if(c==='"')q=true;
+    else if(c===sep){row.push(f);f='';}
+    else if(c==='\n'){row.push(f);f='';rows.push(row);row=[];}
+    else if(c!=='\r')f+=c;}
+  if(f!==''||row.length){row.push(f);rows.push(row);}
+  return rows.filter(r=>r.some(x=>x.trim()!==''));
+}
+function importRows(rows){
+  if(!rows.length)return toast('Fichier vide');
+  const head=rows[0].map(norm);
+  let ni=head.findIndex(h=>NAMEK.includes(h)), wi=head.findIndex(h=>WK.includes(h)), start=1;
+  if(ni<0){ ni=0; start=0;
+    wi=-1;
+    for(let c=1;c<rows[0].length;c++){ const v=parseFloat(String(rows[0][c]).replace(',','.')); if(v>=1&&v<=5){wi=c;break;} }
+    if(wi<0)wi=1;
+  } else if(wi<0){ wi=-1; }
+  let add=0,dup=0,noW=0,bad=0;
+  const seen=new Set(DB.games.map(g=>norm(g.name)));
+  for(let r=start;r<rows.length;r++){
+    const nm=(rows[r][ni]||'').trim(); if(!nm){bad++;continue;}
+    if(seen.has(norm(nm))){dup++;continue;}
+    let w=wi>=0?parseFloat(String(rows[r][wi]||'').replace(',','.')):NaN;
+    if(!(w>=1&&w<=5)){w=null;noW++;}
+    DB.games.push({id:uid(),name:nm,weight:w}); seen.add(norm(nm)); add++;
+  }
+  save(); rGame();
+  $('#gReport').innerHTML=`<div class="hint" style="color:var(--muted);margin-top:10px">
+    <b>${add}</b> jeu${add>1?'x':''} importé${add>1?'s':''}${noW?` · <span style="color:var(--red)">${noW} sans poids exploitable</span>`:''}${dup?` · ${dup} doublon${dup>1?'s':''} ignoré${dup>1?'s':''}`:''}${bad?` · ${bad} ligne${bad>1?'s':''} vide${bad>1?'s':''}`:''}.
+    ${noW?'Utilisez le filtre « Sans poids » ci-dessous pour les compléter.':''}</div>`;
+  toast(add+' jeu'+(add>1?'x':'')+' importé'+(add>1?'s':''));
+}
+
+/* ---------- événements ---------- */
+$$('nav button').forEach(b=>b.onclick=()=>{
+  view=b.dataset.v; sEdit=null; pEdit=null; gEdit=null; $$('nav button').forEach(x=>x.classList.toggle('on',x===b));
+  $$('main section').forEach(s=>s.classList.toggle('on',s.id==='v-'+view)); render(); window.scrollTo(0,0);});
+$('#year').onchange=e=>{year=+e.target.value;render();};
+$('#ptTable').onclick=e=>{ const tr=e.target.closest('tr[data-pp]'); if(!tr) return;
+  const id=tr.dataset.pp; ptOpen.has(id)?ptOpen.delete(id):ptOpen.add(id); rRank(); };
+$('#titleBox').onclick=e=>{
+  if(e.target.id==='capReset'){ delete DB.seasonCfg[String(year)]; save(); render(); toast('Saison '+year+' : valeur par défaut'); return; }
+  const a=e.target.closest('[data-hy]'); if(!a)return; e.preventDefault(); openHist('year',a.dataset.hy);};
+$('#titleBox').onchange=e=>{ if(e.target.id!=='capIn')return;
+  const v=Math.round(+e.target.value); if(!(v>=1)) return toast('Nombre invalide');
+  DB.seasonCfg=DB.seasonCfg||{}; DB.seasonCfg[String(year)]={capN:v}; save(); render();
+  toast('Saison '+year+' : '+v+' parties retenues'); };
+$$('[data-sc]').forEach(b=>b.onclick=()=>{stScope=b.dataset.sc;rStat();});
+$$('[data-gf]').forEach(b=>b.onclick=()=>{gFilter=b.dataset.gf;rGame();});
+$('#dA').onchange=duelOut; $('#dB').onchange=duelOut;
+
+$('#mChips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;const id=c.dataset.p;
+  const i=draft.order.findIndex(o=>o.pid===id);
+  if(i>=0){draft.order.splice(i,1);if(draft.order[0])draft.order[0].tie=false;} else draft.order.push({pid:id,tie:false});
+  drawChips(); drawOrder();};
+$('#mOrder').onclick=e=>{const b=e.target.closest('button');if(!b)return;const o=draft.order;
+  if(b.dataset.tie!==undefined){const i=+b.dataset.tie;o[i].tie=!o[i].tie;}
+  if(b.dataset.up!==undefined){const i=+b.dataset.up;[o[i-1],o[i]]=[o[i],o[i-1]];}
+  if(b.dataset.dn!==undefined){const i=+b.dataset.dn;[o[i+1],o[i]]=[o[i],o[i+1]];}
+  if(o[0])o[0].tie=false;drawOrder();};
+$('#mGame').onchange=()=>{draft.gameId=$('#mGame').value; updW();};
+$('#mSerie').onchange=()=>{draft.serieId=$('#mSerie').value;};
+$('#mCount').onchange=()=>{draft.off=!$('#mCount').checked;};
+$('#mSave').onclick=()=>{
+  const gid=$('#mGame').value,date=$('#mDate').value;
+  if(!gid)return toast('Choisissez un jeu');
+  if(!date)return toast('Choisissez une date');
+  if(draft.order.length<2)return toast('Au moins 2 participants');
+  const res=ranksFromOrder();
+  const off=!$('#mCount').checked;
+  if(draft.id){const m=DB.matches.find(x=>x.id===draft.id);Object.assign(m,{date,gameId:gid,seriesId:$('#mSerie').value||null,results:res,off});}
+  else DB.matches.push({id:uid(),seq:Date.now(),date,gameId:gid,seriesId:$('#mSerie').value||null,results:res,off});
+  save();draft={id:null,order:[],serieId:$('#mSerie').value,gameId:gid,off:false};rMatch();
+  toast(off?'Partie enregistrée, hors classement':'Partie enregistrée');};
+$('#mReset').onclick=()=>{ if(draft.id) $('#mDate').value=new Date().toISOString().slice(0,10);
+  draft={id:null,order:[],off:false}; rMatch(); };
+$('#mList').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.om){const m=DB.matches.find(x=>x.id===b.dataset.om);m.off=!m.off;save();
+    if(draft.id===m.id) draft.off=m.off; rMatch();
+    toast(m.off?'Partie exclue des classements':'Partie réintégrée aux classements');}
+  if(b.dataset.dm){if(confirm('Supprimer cette partie ?')){DB.matches=DB.matches.filter(m=>m.id!==b.dataset.dm);
+    if(draft.id===b.dataset.dm) draft={id:null,order:[],off:false}; save();rMatch();}}
+  if(b.dataset.em){const m=DB.matches.find(x=>x.id===b.dataset.em);
+    draft={id:m.id,gameId:m.gameId,serieId:m.seriesId||'',off:m.off===true,order:m.results.slice().sort((a,b)=>a.rank-b.rank).map((r,i,arr)=>({pid:r.playerId,tie:i>0&&arr[i-1].rank===r.rank}))};
+    $('#mDate').value=m.date;rMatch();window.scrollTo(0,0);}};
+$('#histCard').oninput=e=>{ const t=e.target, id=t.dataset.hpw||t.dataset.hpg; if(!id) return;
+  hForm.ps=hForm.ps||{}; const x=hForm.ps[id]=hForm.ps[id]||{w:null,g:null};
+  const v=t.value===''?null:Math.max(0,Math.round(+t.value));
+  if(t.dataset.hpw) x.w=v; else x.g=v; };
+$('#histCard').onclick=e=>{
+  const t=e.target, o=hForm.order;
+  const c=t.closest('[data-hp]');
+  if(c){const id=c.dataset.hp, i=o.indexOf(id); if(i>=0)o.splice(i,1); else o.push(id); drawHOrder(); return;}
+  const b=t.closest('button'); if(!b)return;
+  if(b.dataset.hk){ if(hForm.id)return; hForm={kind:b.dataset.hk,id:null,order:[],ps:{}}; rHist(); return; }
+  if(b.dataset.hu!==undefined){const i=+b.dataset.hu;[o[i-1],o[i]]=[o[i],o[i-1]];drawHOrder();return;}
+  if(b.dataset.hd!==undefined){const i=+b.dataset.hd;[o[i+1],o[i]]=[o[i],o[i+1]];drawHOrder();return;}
+  if(b.dataset.hey){openHist('year',b.dataset.hey);return;}
+  if(b.dataset.hcancel){hForm={kind:hForm.kind,id:null,order:[],ps:{}};rHist();return;}
+  if(b.dataset.hdel){
+    if(hForm.kind==='serie'){const x=DB.series.find(z=>z.id===hForm.id);
+      if(!confirm('Supprimer la série « '+x.name+' » ?'))return; DB.series=DB.series.filter(z=>z.id!==hForm.id);}
+    else{const x=DB.histYears.find(z=>z.id===hForm.id);
+      if(!confirm('Supprimer l\'année '+x.year+' ?'))return; DB.histYears=DB.histYears.filter(z=>z.id!==hForm.id);}
+    hForm={kind:hForm.kind,id:null,order:[],ps:{}}; save(); render(); toast('Supprimé'); return; }
+  if(b.dataset.hsave){
+    if(!o.length) return toast('Indiquez au moins le vainqueur');
+    if(hForm.kind==='serie'){
+      const name=$('#hsName').value.trim(); if(!name) return toast('Nom requis');
+      const bad=o.find(id=>{const x=(hForm.ps||{})[id]; return x&&x.w!=null&&x.g!=null&&x.w>x.g;});
+      if(bad) return toast(pName(bad)+' : plus de victoires que de parties');
+      const season=$('#hsSeason').value?+$('#hsSeason').value:null, st=$('#hsStart').value||null, en=$('#hsEnd').value||null;
+      if(!season&&!st&&!en) return toast('Indiquez une saison ou des dates');
+      if(st&&en&&en<st) return toast('La date de fin précède le début');
+      const w=parseFloat(String($('#hsW').value).replace(',','.'));
+      const rec={name,season,start:st,end:en,nGames:+$('#hsN').value||0,avgWeight:(w>=1&&w<=5)?w:null,
+        pstats:psFromForm(o),ranking:o.slice()};
+      if(hForm.id) Object.assign(DB.series.find(z=>z.id===hForm.id),rec);
+      else DB.series.push({id:uid(),hist:true,status:'closed',best:null,...rec});
+    } else {
+      const y=+$('#hyYear').value; if(!(y>1900&&y<3000)) return toast('Année invalide');
+      if(DB.histYears.some(z=>z.year===y&&z.id!==hForm.id)) return toast('L\'année '+y+' est déjà saisie');
+      const rec={year:y,nGames:+$('#hyN').value||0,nSeries:+$('#hyS').value||0,
+        winWins:$('#hyV').value!==''?Math.max(0,Math.round(+$('#hyV').value)):null,ranking:o.slice()};
+      if(hForm.id) Object.assign(DB.histYears.find(z=>z.id===hForm.id),rec);
+      else DB.histYears.push({id:uid(),...rec});
+    }
+    const was=!!hForm.id; hForm={kind:hForm.kind,id:null,order:[],ps:{}}; save(); render();
+    toast(was?'Historique modifié':'Ajouté à l\'historique'); }
+};
+$('#sAdd').onclick=()=>{const n=$('#sName').value.trim();if(!n)return toast('Nom requis');
+  DB.series.push({id:uid(),name:n,best:$('#sBest').value?+$('#sBest').value:null,
+    season:$('#sSeason').value?+$('#sSeason').value:null,status:'open',noYear:!$('#sYear').checked});
+  $('#sYear').checked=true;
+  $('#sName').value='';$('#sBest').value='';$('#sSeason').value='';save();rSerie();toast('Série créée');};
+$('#sList').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.toggle){const s=DB.series.find(x=>x.id===b.dataset.toggle);s.status=s.status==='open'?'closed':'open';save();rSerie();}
+  if(b.dataset.hs){openHist('serie',b.dataset.hs);return;}
+  if(b.dataset.es){sEdit=b.dataset.es;rSerie();window.scrollTo(0,0);}
+  if(b.dataset.scancel){sEdit=null;rSerie();}
+  if(b.dataset.sok){const s=DB.series.find(x=>x.id===b.dataset.sok);
+    const n=$('#sfName').value.trim(); if(!n)return toast('Nom requis');
+    const st=$('#sfStart').value,en=$('#sfEnd').value;
+    if(st&&en&&en<st)return toast('La date de fin précède le début');
+    s.name=n; s.start=st||null; s.end=en||null;
+    s.best=$('#sfBest').value?+$('#sfBest').value:null; s.status=$('#sfStatus').value;
+    s.season=$('#sfSeason').value?+$('#sfSeason').value:null;
+    s.noYear=!$('#sfYear').checked;
+    sEdit=null;save();render();toast('Série modifiée');}
+  if(b.dataset.ds){const s=DB.series.find(x=>x.id===b.dataset.ds);
+    if(confirm('Supprimer « '+s.name+' » ? Les parties sont conservées, hors série.')){
+      DB.matches.forEach(m=>{if(m.seriesId===s.id)m.seriesId=null;});
+      DB.series=DB.series.filter(x=>x.id!==s.id);save();rSerie();}}};
+$('#gAdd').onclick=()=>{const n=$('#gName').value.trim(),w=parseFloat($('#gW').value);
+  if(!n)return toast('Nom requis');
+  DB.games.push({id:uid(),name:n,weight:(w>=1&&w<=5)?w:null});
+  $('#gName').value='';$('#gW').value='';save();rGame();toast('Jeu ajouté');};
+$('#gCsv').onclick=()=>$('#gFile').click();
+$('#gFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{importRows(parseCSV(r.result));}catch(x){toast('Lecture impossible');}};
+  r.readAsText(f,'utf-8');e.target.value='';};
+$('#gTxtT').onclick=()=>{const b=$('#gTxtBox');b.style.display=b.style.display==='none'?'block':'none';};
+$('#gBulkAdd').onclick=()=>{const t=$('#gBulk').value.trim();if(!t)return toast('Liste vide');
+  importRows(parseCSV(t));$('#gBulk').value='';};
+$('#gList').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.dg){if(DB.matches.some(m=>m.gameId===b.dataset.dg))return toast('Jeu utilisé dans des parties');
+    DB.games=DB.games.filter(g=>g.id!==b.dataset.dg);save();rGame();}
+  if(b.dataset.eg){gEdit=b.dataset.eg;rGame();}
+  if(b.dataset.gcancel){gEdit=null;rGame();}
+  if(b.dataset.gok){const g=DB.games.find(x=>x.id===b.dataset.gok);
+    const n=$('#geName').value.trim(); if(!n) return toast('Nom requis');
+    const wv=parseFloat(String($('#geW').value).replace(',','.'));
+    const h=$('#geH').value===''?0:Math.max(0,Math.round(+$('#geH').value)), f=$('#geF').value||null;
+    const appFirst=DB.matches.filter(m=>m.gameId===g.id).map(m=>m.date).sort()[0];
+    if(f&&appFirst&&f>appFirst) return toast('La 1re partie ne peut pas être après la 1re partie saisie ('+fdate(appFirst)+')');
+    g.name=n; g.weight=(wv>=1&&wv<=5)?wv:null; g.histN=h||null; g.histFirst=f;
+    gEdit=null; save(); rGame(); toast('Jeu modifié');}};
+$('#pAdd').onclick=()=>{const n=$('#pName').value.trim();if(!n)return toast('Nom requis');
+  const used=DB.players.map(p=>pColor(p.id).toLowerCase());
+  const free=COLORS.find(c=>!used.includes(c.toLowerCase()))||null;
+  DB.players.push({id:uid(),name:n,main:false,color:free,vet:false});$('#pName').value='';save();rPlayer();toast('Joueur ajouté');};
+$('#pList').onclick=e=>{
+  const sw=e.target.closest('[data-pc]');
+  if(sw){const c=sw.dataset.pc; $('#pfColor').value=c;
+    $$('#pList .sw button').forEach(b=>b.classList.toggle('on',b.dataset.pc===c));
+    $('.sw-cust span').style.background=c; pfWarn(c); return;}
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.mp){const p=DB.players.find(x=>x.id===b.dataset.mp);p.main=!p.main;save();rPlayer();
+    toast(p.main?p.name+' marqué joueur principal':p.name+' retiré des principaux');}
+  if(b.dataset.ep){pEdit=b.dataset.ep;rPlayer();
+    const c=pColor(pEdit);pfWarn(c);}
+  if(b.dataset.pcancel){pEdit=null;rPlayer();}
+  if(b.dataset.preset){const p=DB.players.find(x=>x.id===b.dataset.preset);
+    p.color=null;pEdit=null;save();rPlayer();toast('Couleur par défaut rétablie');}
+  if(b.dataset.pok){const p=DB.players.find(x=>x.id===b.dataset.pok);
+    const n=$('#pfName').value.trim(); if(!n)return toast('Nom requis');
+    p.name=n; p.color=$('#pfColor').value; p.vet=$('#pfVet').value==='1';
+    pEdit=null;save();rPlayer();toast('Joueur modifié');}
+  if(b.dataset.dp){if(DB.matches.some(m=>m.results.some(r=>r.playerId===b.dataset.dp)))return toast('Joueur présent dans des parties');
+    if(DB.series.some(x=>(x.ranking||[]).includes(b.dataset.dp))||(DB.histYears||[]).some(x=>x.ranking.includes(b.dataset.dp)))
+      return toast('Joueur présent dans l\'historique');
+    DB.players=DB.players.filter(p=>p.id!==b.dataset.dp);save();rPlayer();}};
+function pfWarn(c){const w=$('#pfWarn'); if(!w)return;
+  const other=DB.players.filter(p=>p.id!==pEdit&&pColor(p.id).toLowerCase()===String(c).toLowerCase()).map(p=>p.name);
+  w.innerHTML=other.length?`<span style="color:var(--red)">Cette couleur est déjà celle de ${esc(other.join(', '))}.</span>`
+   :'Cette couleur identifie le joueur dans les classements, le graphe des cotes et les barres de duel.';}
+$('#pList').oninput=e=>{if(e.target.id==='pfColor'){const c=e.target.value;
+  $$('#pList .sw button').forEach(b=>b.classList.toggle('on',b.dataset.pc.toLowerCase()===c.toLowerCase()));
+  $('.sw-cust span').style.background=c; pfWarn(c);}};
+$('#cSave').onclick=()=>{DB.settings={...DB.settings,start:+$('#cStart').value||1000,k:+$('#cK').value||32,ref:+$('#cRef').value||2.5,yearly:0,
+  capDefault:Math.max(1,Math.round(+$('#cCapD').value||21)),sizeMode:$('#cSize').value,
+  newN:Math.max(0,+$('#cNewN').value||0),newMult:Math.max(1,Math.min(4,+$('#cNewM').value||1)),
+  winBonus:Math.max(0,Math.min(100,+$('#cBonus').value||0)),curve:Math.max(1,Math.min(3,+$('#cCurve').value||1))};
+  save();rSet();toast('Paramètres appliqués');};
+/* ---------- publication en ligne (GitHub) ---------- */
+// configuration rangée à part des données : elle ne part ni dans data.json ni dans les exports
+const PUBKEY='mdo-publication';
+const pubCfg=()=>{ try{ return JSON.parse(localStorage.getItem(PUBKEY)||'{}'); }catch(e){ return {}; } };
+const pubSet=c=>{ try{ localStorage.setItem(PUBKEY,JSON.stringify(c)); }catch(e){} };
+const pubReady=c=>!!(c.owner&&c.repo&&c.token);
+const siteUrl=c=>`https://${c.owner.toLowerCase()}.github.io/${c.repo}/`;
+function utf8b64(t){ const b=new TextEncoder().encode(t); let x='';
+  for(let i=0;i<b.length;i+=0x8000) x+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(x); }
+async function ghPut(c,path,text,msg){
+  const api=`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${path}`;
+  const H={Authorization:'Bearer '+c.token,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
+  const b64=utf8b64(text); let sha=null;
+  const g=await fetch(api,{headers:H,cache:'no-store'});
+  if(g.status===200){ const j=await g.json(); sha=j.sha;
+    if(j.content && j.content.replace(/\s/g,'')===b64) return 'inchangé'; }
+  else if(g.status!==404) throw {status:g.status};
+  const r=await fetch(api,{method:'PUT',headers:{...H,'Content-Type':'application/json'},
+    body:JSON.stringify({message:msg,content:b64,...(sha?{sha}:{})})});
+  if(!r.ok) throw {status:r.status};
+  return sha?'mis à jour':'créé';
+}
+function ghErr(e){
+  const st=e&&e.status;
+  if(st===401) return 'Clé refusée par GitHub : vérifiez-la, ou recréez-la si elle a expiré.';
+  if(st===403) return 'La clé n\'a pas le droit d\'écrire : donnez-lui la permission « Contents : Read and write » sur ce dépôt.';
+  if(st===404) return 'Dépôt introuvable : vérifiez le compte et le nom du dépôt, et que la clé y a bien accès.';
+  if(st===409||st===422) return 'GitHub a refusé la mise à jour (conflit) : réessayez.';
+  return 'Impossible de joindre GitHub : vérifiez la connexion internet.';
+}
+let pubBusy=false;
+async function publish(){
+  if(RO||pubBusy) return;
+  const c=pubCfg(); if(!pubReady(c)){ toast('Configurez d\'abord la publication dans Réglages'); return; }
+  pubBusy=true; const info=$('#gInfo'); const say=h=>{ if(info) info.innerHTML=h; };
+  say('Publication en cours…'); toast('Publication en cours…');
+  try{
+    const now=new Date();
+    const data=JSON.stringify({...DB,publishedAt:now.toISOString()});
+    const stamp=now.toLocaleString('fr-FR');
+    const rd=await ghPut(c,'data.json',data,'Données du '+stamp);
+    const rh=await ghPut(c,'index.html',SRC,'Appli du '+stamp);
+    c.last=now.toISOString(); pubSet(c);
+    say(`<span style="color:var(--green)">Publié le ${stamp}</span> — données ${rd}, appli ${rh}.<br>
+      En ligne d'ici une à deux minutes : <a href="${siteUrl(c)}" target="_blank" rel="noopener" style="color:var(--acc)">${siteUrl(c)}</a>`);
+    toast('Publié');
+  }catch(e){ say(`<span style="color:var(--red)">${ghErr(e)}</span>`); toast('Échec de la publication'); }
+  finally{ pubBusy=false; }
+}
+function rPub(){
+  const c=pubCfg();
+  $('#gOwner').value=c.owner||''; $('#gRepo').value=c.repo||''; $('#gTok').value=c.token||'';
+  $('#hPub').style.display= !RO&&pubReady(c) ? '' : 'none';
+  if(!$('#gInfo').innerHTML) $('#gInfo').innerHTML= pubReady(c)
+    ? `Adresse publique : <a href="${siteUrl(c)}" target="_blank" rel="noopener" style="color:var(--acc)">${siteUrl(c)}</a>${c.last?` · dernière publication le ${new Date(c.last).toLocaleString('fr-FR')}`:''}`
+    : 'Renseignez le compte, le dépôt et la clé, puis enregistrez.';
+}
+$('#gCfg').onclick=()=>{ const c=pubCfg();
+  c.owner=$('#gOwner').value.trim(); c.repo=$('#gRepo').value.trim(); c.token=$('#gTok').value.trim();
+  pubSet(c); $('#gInfo').innerHTML=''; rPub(); toast(pubReady(c)?'Configuration enregistrée':'Configuration incomplète'); };
+$('#gPub').onclick=()=>{ const c=pubCfg();
+  const o=$('#gOwner').value.trim(), r=$('#gRepo').value.trim(), t=$('#gTok').value.trim();
+  if(o&&r&&t&&(o!==c.owner||r!==c.repo||t!==c.token)){ pubSet({...c,owner:o,repo:r,token:t}); rPub(); }
+  publish(); };
+$('#hPub').onclick=publish;
+
+/* ---------- synthèse imprimable ---------- */
+function buildPrint(){
+  const {R,hist,st}=engine(year);
+  const ids=Object.keys(st).sort((a,b)=>R[b]-R[a]);
+  const po=ptsOrder(year), ap=po.ap, ptsIds=po.ids;
+  const cap=seasonCap(year), champ=ptsIds[0]||null, second=ptsIds[1]||null;
+  const cours=String(year)===String(new Date().getFullYear());
+  const ms=sortedMatches(year), sw=serieWins(year), aw=seasonWins();
+  const sy=seriesSorted().filter(x=>serieInYear(x,year));
+  const per=year;
+  const pw=ms.length?(ms.reduce((a,m)=>a+gw(gById(m.gameId)),0)/ms.length).toFixed(2):'—';
+  const dt=new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+  const dot=id=>`<i class="p-dot" style="background:${pColor(id)}"></i>`;
+  const nom=id=>`${dot(id)}${esc(pName(id))}`;
+
+  let h=`<div class="p-head"><div style="display:flex;align-items:center;gap:11px">${mdo(46)}<div><div class="p-t">Meeple d'Or</div><div class="p-s">Saison ${per}</div></div></div>
+    <div class="p-d">Synthèse au ${dt}</div></div>`;
+  const hy=histYear(year);
+  if(hy){
+    const ch=hy.ranking[0];
+    h+=`<div class="p-kpi"><div><b>${hy.nGames||'—'}</b><span>parties</span></div><div><b>${hy.ranking.length}</b><span>joueurs</span></div>
+      <div><b>${hy.nSeries||sy.length||'—'}</b><span>séries</span></div>
+      <div><b>${(()=>{const w=sy.map(seriePoids).filter(v=>v!==null);return w.length?(w.reduce((a,v)=>a+v,0)/w.length).toFixed(2):'—';})()}</b><span>poids moyen</span></div></div>`;
+    h+=`<div class="p-card p-champ"><h3>Titre ${year}</h3>
+      <div class="nm" style="display:flex;align-items:center;gap:9px">${mdo(30)}<span>${ch?nom(ch):'—'}${hy.winWins!=null?` <small>— ${plur(hy.winWins,'victoire')}</small>`:''}</span></div></div>`;
+    h+=`<div class="p-card"><h3>Classement final ${year}</h3><table><thead><tr><th class="rk"></th><th>Joueur</th></tr></thead><tbody>`+
+      hy.ranking.map((id,i)=>`<tr class="${i===0?'top':''}"><td class="rk">${i+1}</td><td class="${i===0?'b':''}">${nom(id)}</td></tr>`).join('')+
+      `</tbody></table><div class="p-note">Classement saisi à la main, sans cote Elo ni points.</div></div>`;
+    if(sy.length){ h+=`<div class="p-sec">Les séries de la saison</div><div class="p-grid">`;
+      sy.forEach(x=>{const r=serieRank(x), n=serieN(x), po=seriePoids(x);
+        h+=`<div class="p-card p-serie"><div class="sh">${esc(x.name)}${x.hist?'<span class="p-tag">historique</span>':''}</div>
+          <div class="sm">${n?n+' parties':''}${po!==null?' · poids '+po.toFixed(2):''}${serieDates(x)?' · '+serieDates(x):''}</div>
+          <table><thead><tr><th class="rk"></th><th>Joueur</th></tr></thead><tbody>`+
+          r.map((y,i)=>`<tr class="${i===0?'top':''}"><td class="rk">${i+1}</td><td class="${i===0?'b':''}">${nom(y.id)}</td></tr>`).join('')+
+          `</tbody></table></div>`;});
+      h+=`</div>`; }
+    return h;
+  }
+  if(!ids.length) return h+'<div class="p-card">Aucune partie comptabilisée sur cette période.</div>';
+
+  h+=`<div class="p-kpi"><div><b>${ms.length}</b><span>parties</span></div><div><b>${ids.length}</b><span>joueurs</span></div>
+    <div><b>${sy.length}</b><span>séries</span></div><div><b>${pw}</b><span>poids moyen</span></div></div>`;
+
+  h+=`<div class="p-card p-champ"><h3>Meeple d'Or ${per}${cours?' — saison en cours':''}</h3>
+    <div class="nm" style="display:flex;align-items:center;gap:9px">${mdo(30)}<span>${champ?nom(champ):'non attribué'}
+      <small>— ${champ?Math.round(ap[champ].total)+' points':''}${cours?' · leader provisoire':''}</small></span></div>
+    <div class="ln">${tieNote(po,champ,second)}Somme des ${cap} meilleures parties de chaque joueur ; les parties manquantes valent zéro.</div></div>`;
+
+  h+=`<div class="p-card"><h3>Classement de la saison</h3><table><thead><tr><th class="rk"></th><th>Joueur</th>
+    <th class="num">Points</th><th class="num">Retenues</th><th class="num">Jouées</th><th class="num">Victoires</th><th class="num">Cote Elo</th></tr></thead><tbody>`;
+  ptsIds.forEach((id,i)=>{ const a=ap[id];
+    h+=`<tr class="${id===champ?'top':''}"><td class="rk">${i+1}</td>
+      <td>${nom(id)}${id===champ?' '+mdo(12,'margin-left:4px'):''}</td>
+      <td class="num v b">${Math.round(a.total)}</td><td class="num" style="color:${a.kept<cap?'var(--gold)':'var(--dim)'}">${a.kept}/${cap}</td>
+      <td class="num">${a.played}</td><td class="num">${st[id]?st[id].wins:0}</td><td class="num" style="color:var(--muted)">${Math.round(R[id])}</td></tr>`;});
+  h+=`</tbody></table><div class="p-note">Classement officiel par points. La cote Elo, continue et jamais remise à zéro, est donnée en référence de niveau à fin ${per}.</div></div>`;
+
+  h+=`<div class="p-card"><h3>Évolution des cotes</h3>${chart(hist,R,700,130)}</div>`;
+
+  const cs=combStats(st,year);
+  const sIds=Object.keys(cs).sort((a,b)=>((cs[b].rate??-1)-(cs[a].rate??-1))||cs[b].J-cs[a].J);
+  let stT=`<div class="p-card"><h3>Statistiques des joueurs</h3><table><thead><tr><th>Joueur</th>
+    <th class="num">J</th><th class="num">V</th><th class="num">%</th><th class="num">Séries</th><th class="num">Saisons</th></tr></thead><tbody>`;
+  sIds.forEach((id,i)=>stT+=`<tr class="${i===0?'top':''}"><td>${nom(id)}</td>
+    <td class="num">${cs[id].J}</td><td class="num">${cs[id].V}</td>
+    <td class="num v b">${cs[id].rate!=null?Math.round(100*cs[id].rate)+'%':'—'}</td>
+    <td class="num">${sw[id]||0}</td><td class="num">${aw[id]||0}</td></tr>`);
+  stT+=`</tbody></table></div>`;
+
+  const D=duelStats(year), mains=DB.players.filter(p=>p.main).map(p=>p.id);
+  const rows=Object.values(D).filter(o=>mains.includes(o.a)&&mains.includes(o.b)).sort((x,y)=>y.n-x.n);
+  let duT=`<div class="p-card"><h3>Duels des joueurs principaux</h3>${
+    !mains.length?'<div class="p-note">Aucun joueur principal marqué (étoile dans l\'onglet Joueurs).</div>'
+    : !rows.length?'<div class="p-note">Aucune confrontation.</div>' : rows.map(o=>bar(o)).join('')}</div>`;
+  h+=`<div class="p-grid">${stT}${duT}</div>`;
+
+  if(sy.length){
+    h+=`<div class="p-sec">Les séries de la saison</div><div class="p-grid">`;
+    sy.forEach(x=>{
+      const r=serieRank(x), n=serieN(x), po=seriePoids(x);
+      h+=`<div class="p-card p-serie"><div class="sh">${esc(x.name)}${x.hist?'<span class="p-tag">historique</span>':x.status==='open'?'<span class="p-tag">en cours</span>':''}${x.noYear?'<span class="p-tag">hors Meeple d\'Or</span>':''}</div>
+        <div class="sm">${n} partie${n>1?'s':''}${po!==null?' · poids '+po.toFixed(2):''}${serieDates(x)?' · '+serieDates(x):''}${x.best?' · meilleurs '+x.best:''}${x.season?' · saison '+x.season:''}</div>`;
+      if(!r.length) h+='<div class="p-note">Aucun résultat.</div>';
+      else if(x.hist){ h+=`<table><thead><tr><th class="rk"></th><th>Joueur</th></tr></thead><tbody>`;
+        r.forEach((y,i)=>h+=`<tr class="${i===0?'top':''}"><td class="rk">${i+1}</td><td class="${i===0?'b':''}">${nom(y.id)}</td></tr>`);
+        h+='</tbody></table>';}
+      else{ h+=`<table><thead><tr><th class="rk"></th><th>Joueur</th><th class="num">Total</th><th class="num">Ret.</th></tr></thead><tbody>`;
+        r.forEach((y,i)=>h+=`<tr class="${i===0?'top':''}"><td class="rk">${i+1}</td><td>${nom(y.id)}</td>
+          <td class="num v b">${Math.round(y.total)}</td><td class="num" style="color:var(--dim)">${y.kept}/${y.played}</td></tr>`);
+        h+='</tbody></table>';}
+      h+='</div>';});
+    h+=`</div>`;
+  }
+  h+=`<div class="p-foot">Paramètres — ${cap} parties retenues pour ${per} · Elo continu, départ ${DB.settings.start}, K ${DB.settings.k}, poids de référence ${DB.settings.ref}
+    · nombre de joueurs : ${({none:'aucune pondération',sqrt:'pondération atténuée',lin:'pondération type BGA'})[DB.settings.sizeMode||'sqrt']}
+    · prime de victoire ${DB.settings.winBonus} % · courbure ${DB.settings.curve} · calibration ${DB.settings.newN} parties ×${DB.settings.newMult}</div>`;
+  return h;
+}
+function doPrint(){
+  const el=$('#printArea');
+  el.innerHTML=buildPrint();
+  const t=document.title;
+  document.title="Meeple d'Or — "+year;
+  setTimeout(()=>{ window.print(); document.title=t; },60);
+}
+$('#hPrint').onclick=doPrint;
+function exportJSON(){DB.savedAt=new Date().toLocaleString('fr-FR');save();
+  const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download='classement-jds-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  if(view==='set')rSet(); toast('Sauvegarde exportée');}
+$('#expJ').onclick=exportJSON; $('#hSave').onclick=exportJSON;
+$('#impJ').onclick=()=>$('#fileJ').click();
+$('#fileJ').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.players||!d.matches)throw 0;
+    DB={...DB,...d};save();render();toast('Données importées');}catch(x){toast('Fichier invalide');}};
+  r.readAsText(f);e.target.value='';};
+$('#wipe').onclick=()=>{if(confirm('Effacer toutes les données ?')){localStorage.removeItem(KEY);
+  DB={players:[],games:[],series:[],matches:[],histYears:[],seasonCfg:{},settings:{start:1000,k:32,ref:2.5,yearly:0,sizeMode:'sqrt',newN:5,newMult:2,winBonus:25,curve:1,capDefault:21},savedAt:null};render();toast('Effacé');}};
+
+$('#hLogo').innerHTML=mdo(26);
+if(RO){
+  document.body.classList.add('ro');
+  loadOnline().then(ok=>{ render();
+    const d=DB.publishedAt?new Date(DB.publishedAt):null;
+    $('#roBar').innerHTML= ok
+      ? `Consultation${d?` · mis à jour le ${d.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})} à ${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}`:''}`
+      : '<span style="color:var(--red)">Données indisponibles : rechargez la page dans un instant.</span>'; });
+} else { load(); render(); rPub(); }
+</script></body></html>

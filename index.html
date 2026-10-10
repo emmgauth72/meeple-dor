@@ -1115,13 +1115,18 @@ function rMatch(){
   $('#mFormTitle').textContent= draft.id ? (draft.plan?'Modifier la partie prévue':'Modifier la partie')
     : (draft.plan?'Partie à venir':'Nouvelle partie');
   rPlan();
-  // jours du plus récent au plus ancien ; à l'intérieur d'un jour, ordre réel des parties
+  // la plus récente en tête, y compris à l'intérieur d'une même journée :
+  // k reste le numéro réel de la partie dans sa journée (1 = première jouée)
+  // à seq égal ou absent (anciennes données), la dernière saisie passe devant
+  const pos=new Map(DB.matches.map((m,i)=>[m.id,i]));
   const ms=DB.matches.filter(m=>!prevue(m)).slice()
-    .sort((a,b)=> a.date===b.date ? (a.seq||0)-(b.seq||0) : a.date<b.date?1:-1);
+    .sort((a,b)=> a.date!==b.date ? (a.date<b.date?1:-1)
+      : (b.seq||0)!==(a.seq||0) ? (b.seq||0)-(a.seq||0)
+      : pos.get(b.id)-pos.get(a.id));
   const nDay={}, iDay={}; ms.forEach(m=>{nDay[m.date]=(nDay[m.date]||0)+1;});
   const MD=engine(null).md;
   $('#mList').innerHTML= !ms.length?'<div class="empty">Aucune partie enregistrée.</div>' : ms.map(m=>{
-    const k=(iDay[m.date]=(iDay[m.date]||0)+1), nd=nDay[m.date];
+    const nd=nDay[m.date], k=nd-(iDay[m.date]=(iDay[m.date]||0)+1)+1;
     const s=DB.series.find(x=>x.id===m.seriesId), g=gById(m.gameId);
     const ord=m.results.slice().sort((a,b)=>a.rank-b.rank);
     const pts=m.off?null:matchPts(m), el=m.off?null:MD[m.id];
@@ -1136,8 +1141,8 @@ function rMatch(){
          <td class="num ${e?(e.d>.05?'up':e.d<-.05?'down':'flat'):''}">${e?`${e.d>=0?'+':''}${e.d.toFixed(1)}`:'<span class="u">—</span>'}</td>
          <td class="num u">${e?Math.round(e.after):''}</td></tr>`;}).join('')}</tbody></table></div>
      <div class="acts">
-     ${nd>1?`<button class="mini" data-mu="${m.id}" ${k===1?'disabled style="opacity:.3"':''} title="Jouée plus tôt dans la journée">↑</button>
-     <button class="mini" data-mdn="${m.id}" ${k===nd?'disabled style="opacity:.3"':''} title="Jouée plus tard dans la journée">↓</button>`:''}
+     ${nd>1?`<button class="mini" data-mu="${m.id}" ${k===nd?'disabled style="opacity:.3"':''} title="Jouée plus tard dans la journée">↑</button>
+     <button class="mini" data-mdn="${m.id}" ${k===1?'disabled style="opacity:.3"':''} title="Jouée plus tôt dans la journée">↓</button>`:''}
      <button class="mini ${m.off?'off':''}" data-om="${m.id}" title="${m.off?'Réintégrer aux classements':'Exclure des classements'}">⊘</button>
      <button class="mini" data-em="${m.id}" title="Modifier">✎</button>
      <button class="mini" data-dm="${m.id}" title="Supprimer">✕</button></div></div>`;}).join('');
@@ -1539,8 +1544,9 @@ function editMatch(id,res){
   if(res) toast('Touchez les joueurs dans l\'ordre d\'arrivée');
 }
 function listClick(e){const b=e.target.closest('button');if(!b)return;
-  if(b.dataset.mu!==undefined){dayMove(b.dataset.mu,-1);return;}
-  if(b.dataset.mdn!==undefined){dayMove(b.dataset.mdn,1);return;}
+  // la liste va du plus récent au plus ancien : ↑ = jouée plus tard, ↓ = jouée plus tôt
+  if(b.dataset.mu!==undefined){dayMove(b.dataset.mu,1);return;}
+  if(b.dataset.mdn!==undefined){dayMove(b.dataset.mdn,-1);return;}
   if(b.dataset.pp){editMatch(b.dataset.pp,true);return;}
   if(b.dataset.om){const m=DB.matches.find(x=>x.id===b.dataset.om);m.off=!m.off;save();
     if(draft.id===m.id) draft.off=m.off; rMatch();

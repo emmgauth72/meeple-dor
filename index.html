@@ -75,6 +75,21 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .tag.open{color:var(--green);border-color:#1e402f}
 .tag.closed{color:var(--dim)}
 .tag.w{color:var(--gold);border-color:#3d3016}
+/* Hall of Fame */
+.ph-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.ph-t{position:relative;aspect-ratio:1;border-radius:var(--r);overflow:hidden;background:var(--surface2);border:1px solid var(--line);cursor:pointer}
+.ph-t img{width:100%;height:100%;object-fit:cover;display:block}
+.ph-t .cap{position:absolute;left:0;right:0;bottom:0;padding:14px 6px 5px;font-size:10px;line-height:1.25;
+  color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.78));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#phBox{position:fixed;inset:0;background:#07080a;z-index:60;display:none;flex-direction:column}
+#phBox.on{display:flex}
+#phBoxImg{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:8px}
+#phBoxImg img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+#phBoxBar{flex:0 0 auto;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);
+  display:flex;gap:10px;align-items:center;background:var(--surface)}
+#phBoxBar .txt{flex:1;min-width:0}
+#phBoxBar .txt b{display:block;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis}
+#phBoxBar .txt span{color:var(--muted);font-size:11px}
 .tag.warn{color:var(--red);border-color:#3a2626}
 .tag.acc{color:var(--acc);border-color:#22406b}
 .mini.go{background:#17304f;border-color:#22406b;color:var(--acc)}
@@ -143,7 +158,8 @@ body.ro #hSave, body.ro #hPub,
 body.ro #v-match > .card:first-child, body.ro #mList .mini, body.ro #planList .mini, body.ro #planHint,
 body.ro #v-serie > .card:first-child, body.ro #histCard,
 body.ro #sList .mini, body.ro #sList .btns, body.ro #sList .sep,
-body.ro #capReset, body.ro [data-hy], body.ro #cSave, body.ro #cardData, body.ro #cardPub { display:none!important }
+body.ro #capReset, body.ro [data-hy], body.ro #cSave, body.ro #cardData, body.ro #cardPub,
+body.ro #phAdd { display:none!important }
 body.ro #v-set input, body.ro #v-set select, body.ro #capIn { pointer-events:none; opacity:.75 }
 tr.pp-row{cursor:pointer}
 tr.pp-row:hover td{background:rgba(255,255,255,.02)}
@@ -252,6 +268,7 @@ code{background:var(--surface2);padding:1px 4px;border-radius:3px;font-size:11px
   <nav>
     <button data-v="rank" class="on">Classement</button>
     <button data-v="palm">Palmarès</button>
+    <button data-v="photo">Hall of Fame</button>
     <button data-v="stat">Stats</button>
     <button data-v="match">Parties</button>
     <button data-v="serie">Séries</button>
@@ -294,6 +311,24 @@ code{background:var(--surface2);padding:1px 4px;border-radius:3px;font-size:11px
     <div class="hint">Classés par nombre de Meeple d'Or, puis de séries gagnées. Toutes années confondues, historique compris.</div></div>
   <div class="card"><h2>Vainqueurs des séries</h2><div id="plSeries"></div></div>
 </section>
+
+<!-- HALL OF FAME -->
+<section id="v-photo">
+  <div class="card" id="phAdd">
+    <h2>Ajouter des photos</h2>
+    <div class="row">
+      <div><label>Date</label><input type="date" id="phDate"></div>
+      <div><label>Légende</label><input type="text" id="phCap" placeholder="Soirée chez Marc, finale de la série…"></div>
+    </div>
+    <div class="btns" style="margin-top:10px">
+      <button class="btn" id="phPick">Choisir des photos</button>
+    </div>
+    <input type="file" id="phFile" accept="image/*" multiple="" style="display:none">
+    <div class="hint" id="phInfo"></div>
+  </div>
+  <div id="phGal"></div>
+</section>
+<div id="phBox"><div id="phBoxImg"></div><div id="phBoxBar"></div></div>
 
 <!-- STATS -->
 <section id="v-stat">
@@ -519,7 +554,7 @@ const uid=()=>Math.random().toString(36).slice(2,10);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const COLORS=['#5b9cf6','#e8b13c','#3ecf8e','#e5645f','#b06ef0','#4fd4d4','#f08a4b','#8fa1b8','#d45f9e','#9fd45f','#f2d75c','#7d8cf5'];
 
-let DB={players:[],games:[],series:[],matches:[],histYears:[],seasonCfg:{},settings:{start:1000,k:32,ref:2.5,yearly:0,sizeMode:'sqrt',newN:5,newMult:2,winBonus:25,curve:1,capDefault:21},savedAt:null};
+let DB={players:[],games:[],series:[],matches:[],histYears:[],photos:[],seasonCfg:{},settings:{start:1000,k:32,ref:2.5,yearly:0,sizeMode:'sqrt',newN:5,newMult:2,winBonus:25,curve:1,capDefault:21},savedAt:null};
 let draft={id:null,order:[]};
 let view='rank', year=new Date().getFullYear(), stScope='all', gFilter='all', sEdit=null, pEdit=null;
 let hForm={kind:'serie',id:null,order:[]};   // saisie de l'historique en cours
@@ -531,6 +566,7 @@ function migrate(){
   DB.settings.yearly=0;
   if(!DB.seasonCfg) DB.seasonCfg={};
   if(!DB.histYears) DB.histYears=[];
+  if(!DB.photos) DB.photos=[];
   if(+DB.settings.capN>0 && !(+DB.settings.capDefault>0)) DB.settings.capDefault=+DB.settings.capN;
   // reprise : un joueur déjà présent dans des parties avant l'arrivée de la calibration
   // est considéré comme confirmé — l'appli ne connaît pas son historique antérieur
@@ -778,7 +814,7 @@ function render(){
   $('#hsub').textContent = (nJ? '· '+nJ+' partie'+(nJ>1?'s':'') : '')+(nP?' · '+nP+' prévue'+(nP>1?'s':''):'');
   const ys=years(); if(!ys.includes(String(year))) year=+ys[0];
   $('#year').innerHTML=ys.map(y=>`<option ${y==year?'selected':''}>${y}</option>`).join('');
-  ({rank:rRank,palm:rPalm,stat:rStat,match:rMatch,serie:rSerie,game:rGame,player:rPlayer,set:rSet})[view]();
+  ({rank:rRank,palm:rPalm,photo:rPhoto,stat:rStat,match:rMatch,serie:rSerie,game:rGame,player:rPlayer,set:rSet})[view]();
 }
 function rRankHist(h){
   $$('#v-rank .calc').forEach(c=>c.style.display='none');
@@ -1696,10 +1732,25 @@ const pubReady=c=>!!(c.owner&&c.repo&&c.token);
 const siteUrl=c=>`https://${c.owner.toLowerCase()}.github.io/${c.repo}/`;
 function utf8b64(t){ const b=new TextEncoder().encode(t); let x='';
   for(let i=0;i<b.length;i+=0x8000) x+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(x); }
-async function ghPut(c,path,text,msg){
-  const api=`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${path}`;
-  const H={Authorization:'Bearer '+c.token,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
-  const b64=utf8b64(text); let sha=null;
+const ghH=c=>({Authorization:'Bearer '+c.token,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'});
+const ghApi=(c,path)=>`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${path}`;
+// liste un dossier du dépôt ; tableau vide s'il n'existe pas encore
+async function ghLs(c,path){
+  const r=await fetch(ghApi(c,path),{headers:ghH(c),cache:'no-store'});
+  if(r.status===404) return [];
+  if(!r.ok) throw {status:r.status};
+  const j=await r.json(); return Array.isArray(j)?j:[];
+}
+async function ghRm(c,path,sha,msg){
+  const r=await fetch(ghApi(c,path),{method:'DELETE',headers:{...ghH(c),'Content-Type':'application/json'},
+    body:JSON.stringify({message:msg,sha})});
+  if(!r.ok) throw {status:r.status};
+}
+const ghPut=(c,path,text,msg)=>ghPutB64(c,path,utf8b64(text),msg);
+async function ghPutB64(c,path,b64,msg){
+  const api=ghApi(c,path);
+  const H=ghH(c);
+  let sha=null;
   const g=await fetch(api,{headers:H,cache:'no-store'});
   if(g.status===200){ const j=await g.json(); sha=j.sha;
     if(j.content && j.content.replace(/\s/g,'')===b64) return 'inchangé'; }
@@ -1725,10 +1776,25 @@ async function publish(){
   say('Publication en cours…'); toast('Publication en cours…');
   try{
     const now=new Date();
-    const data=JSON.stringify({...DB,publishedAt:now.toISOString()});
     const stamp=now.toLocaleString('fr-FR');
+    // photos : un fichier par image, pour que data.json reste léger
+    const todo=DB.photos.filter(p=>!p.file&&PH[p.id]);
+    for(let i=0;i<todo.length;i++){
+      const p=todo[i]; say(`Envoi des photos ${i+1}/${todo.length}…`);
+      const f='photos/'+p.id+'.jpg', t='photos/'+p.id+'_t.jpg';
+      await ghPutB64(c,f,(PH[p.id]||'').split(',')[1]||'','Photo du '+stamp);
+      await ghPutB64(c,t,(PH['t'+p.id]||'').split(',')[1]||'','Vignette du '+stamp);
+      p.file=f; p.tfile=t; save();
+    }
+    if(todo.length) say('Publication en cours…');
+    const data=JSON.stringify({...DB,publishedAt:now.toISOString()});
     const rd=await ghPut(c,'data.json',data,'Données du '+stamp);
     const rh=await ghPut(c,'index.html',SRC,'Appli du '+stamp);
+    // ménage : les photos supprimées dans l'appli disparaissent aussi du dépôt
+    try{
+      const keep=new Set(); DB.photos.forEach(p=>{ if(p.file)keep.add(p.file.split('/').pop()); if(p.tfile)keep.add(p.tfile.split('/').pop()); });
+      for(const f of await ghLs(c,'photos')) if(!keep.has(f.name)) await ghRm(c,'photos/'+f.name,f.sha,'Photo retirée le '+stamp);
+    }catch(e){}
     c.last=now.toISOString(); pubSet(c);
     say(`<span style="color:var(--green)">Publié le ${stamp}</span> — données ${rd}, appli ${rh}.<br>
       En ligne d'ici une à deux minutes : <a href="${siteUrl(c)}" target="_blank" rel="noopener" style="color:var(--acc)">${siteUrl(c)}</a>`);
@@ -1752,6 +1818,121 @@ $('#gPub').onclick=()=>{ const c=pubCfg();
   if(o&&r&&t&&(o!==c.owner||r!==c.repo||t!==c.token)){ pubSet({...c,owner:o,repo:r,token:t}); rPub(); }
   publish(); };
 $('#hPub').onclick=publish;
+
+/* ---------- Hall of Fame ---------- */
+// les images vivent dans IndexedDB (quota large) ; seules les légendes partent dans localStorage
+const PHMAX=1200, PHQ=.75, THMAX=360, THQ=.7, PHKEY='mdo-photos';
+let PH={}, phCur=null;
+function phLS(){ try{ return JSON.parse(localStorage.getItem(PHKEY)||'{}'); }catch(e){ return {}; } }
+function phLSput(k,v){ try{ const m=phLS(); m[k]=v; localStorage.setItem(PHKEY,JSON.stringify(m)); return true; }catch(e){ return false; } }
+function phLSdel(k){ try{ const m=phLS(); delete m[k]; localStorage.setItem(PHKEY,JSON.stringify(m)); return true; }catch(e){ return false; } }
+const IDB={db:null,ok:true,
+  open(){ return new Promise(r=>{ if(IDB.db) return r(IDB.db); if(!IDB.ok||!window.indexedDB) return r(null);
+    let q; try{ q=indexedDB.open('mdo-photos',1); }catch(e){ IDB.ok=false; return r(null); }
+    q.onupgradeneeded=()=>{ try{ q.result.createObjectStore('ph'); }catch(e){} };
+    q.onsuccess=()=>{ IDB.db=q.result; r(IDB.db); };
+    q.onerror=()=>{ IDB.ok=false; r(null); }; }); },
+  async all(){ const db=await IDB.open(); if(!db) return phLS();
+    return new Promise(r=>{ const out={}; try{
+      const c=db.transaction('ph').objectStore('ph').openCursor();
+      c.onsuccess=e=>{ const k=e.target.result; if(!k) return r(out); out[k.key]=k.value; k.continue(); };
+      c.onerror=()=>r(out); }catch(e){ r(out); } }); },
+  async put(k,v){ const db=await IDB.open(); if(!db) return phLSput(k,v);
+    return new Promise(r=>{ try{ const t=db.transaction('ph','readwrite'); t.objectStore('ph').put(v,k);
+      t.oncomplete=()=>r(true); t.onerror=()=>r(false); }catch(e){ r(false); } }); },
+  async del(k){ const db=await IDB.open(); if(!db) return phLSdel(k);
+    return new Promise(r=>{ try{ const t=db.transaction('ph','readwrite'); t.objectStore('ph').delete(k);
+      t.oncomplete=()=>r(true); t.onerror=()=>r(false); }catch(e){ r(false); } }); }};
+// redimensionnement : le navigateur fait tout le travail, rien ne sort de l'appareil
+async function shrink(file,max,q){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(0); i.src=url; });
+    const w=img.naturalWidth||img.width, h=img.naturalHeight||img.height, s=Math.min(1,max/Math.max(w,h));
+    const c=document.createElement('canvas');
+    c.width=Math.max(1,Math.round(w*s)); c.height=Math.max(1,Math.round(h*s));
+    const x=c.getContext('2d'); x.fillStyle='#000'; x.fillRect(0,0,c.width,c.height);
+    x.drawImage(img,0,0,c.width,c.height);
+    return c.toDataURL('image/jpeg',q);
+  } finally{ URL.revokeObjectURL(url); }
+}
+const phSorted=()=>DB.photos.slice().sort((a,b)=> a.date===b.date ? 0 : (a.date<b.date?1:-1));
+const phSrc=(p,thumb)=> RO ? (thumb?(p.tfile||p.file||''):(p.file||'')) : (PH[(thumb?'t':'')+p.id]||'');
+const phBytes=()=>{ let o=0; for(const k in PH) o+=(PH[k]||'').length*.75; return o; };
+function rPhoto(){
+  const ps=phSorted();
+  if(!RO){
+    if(!$('#phDate').value) $('#phDate').value=new Date().toISOString().slice(0,10);
+    $('#phInfo').textContent= ps.length
+      ? `${ps.length} photo${ps.length>1?'s':''} · ${phBytes()>1048576?(phBytes()/1048576).toFixed(1)+' Mo':Math.round(phBytes()/1024)+' ko'} · réduites à ${PHMAX} px`
+      : `Les photos sont réduites à ${PHMAX} px et conservées dans ce navigateur. Elles ne partent en ligne qu'avec le bouton de publication.`;
+  }
+  const byY={}; ps.forEach(p=>{ const y=(p.date||'').slice(0,4)||'—'; (byY[y]=byY[y]||[]).push(p); });
+  const ys=Object.keys(byY).sort((a,b)=>b.localeCompare(a));
+  $('#phGal').innerHTML= !ps.length ? '<div class="card"><div class="empty">Aucune photo pour le moment.</div></div>'
+   : ys.map(y=>`<div class="card"><h2>${y}</h2><div class="ph-grid">${byY[y].map(p=>
+      `<div class="ph-t" data-ph="${p.id}"><img loading="lazy" src="${phSrc(p,true)}" alt="">${
+        p.cap?`<div class="cap">${esc(p.cap)}</div>`:''}</div>`).join('')}</div></div>`).join('');
+}
+function phOpen(id){
+  const ps=phSorted(), i=ps.findIndex(p=>p.id===id); if(i<0) return;
+  const p=ps[i]; phCur=id;
+  $('#phBoxImg').innerHTML=`<img src="${phSrc(p,false)}" alt="">`;
+  $('#phBoxBar').innerHTML=`<button class="hbtn" data-pn="-1" ${i===0?'disabled style="opacity:.3"':''} title="Précédente">‹</button>
+    <div class="txt"><b>${p.cap?esc(p.cap):'<span style="color:var(--dim);font-weight:400">Sans légende</span>'}</b><span>${fdate(p.date)}</span></div>
+    ${RO?'':`<button class="hbtn" data-pe="1" title="Modifier la légende">✎</button><button class="hbtn" data-px="1" title="Supprimer">✕</button>`}
+    <button class="hbtn" data-pn="1" ${i===ps.length-1?'disabled style="opacity:.3"':''} title="Suivante">›</button>
+    <button class="hbtn" data-pc="1" title="Fermer">Fermer</button>`;
+  $('#phBox').classList.add('on');
+}
+function phClose(){ $('#phBox').classList.remove('on'); $('#phBoxImg').innerHTML=''; phCur=null; }
+function phStep(d){ const ps=phSorted(), i=ps.findIndex(p=>p.id===phCur); const n=ps[i+d]; if(n) phOpen(n.id); }
+async function phDel(){
+  const p=DB.photos.find(x=>x.id===phCur); if(!p) return;
+  if(!confirm('Supprimer cette photo ?')) return;
+  DB.photos=DB.photos.filter(x=>x.id!==p.id); delete PH[p.id]; delete PH['t'+p.id];
+  await IDB.del(p.id); await IDB.del('t'+p.id);
+  save(); phClose(); rPhoto(); toast('Photo supprimée');
+}
+function phEdit(){
+  const p=DB.photos.find(x=>x.id===phCur); if(!p) return;
+  const c=prompt('Légende de la photo :',p.cap||''); if(c===null) return;
+  const d=prompt('Date (JJ/MM/AAAA) :',p.date.split('-').reverse().join('/'));
+  if(d){ const m=d.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if(m) p.date=`${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`; else toast('Date ignorée (format JJ/MM/AAAA)'); }
+  p.cap=c.trim(); save(); rPhoto(); phOpen(p.id); toast('Photo modifiée');
+}
+$('#phPick').onclick=()=>$('#phFile').click();
+$('#phFile').onchange=async e=>{
+  const fs=[...e.target.files]; e.target.value=''; if(!fs.length) return;
+  const date=$('#phDate').value||new Date().toISOString().slice(0,10), cap=$('#phCap').value.trim();
+  let ok=0,ko=0;
+  $('#phPick').disabled=true;
+  for(let i=0;i<fs.length;i++){
+    $('#phInfo').textContent=`Traitement de la photo ${i+1} sur ${fs.length}…`;
+    try{
+      const f=fs[i]; if(!/^image\//.test(f.type||'')) { ko++; continue; }
+      const full=await shrink(f,PHMAX,PHQ), th=await shrink(f,THMAX,THQ), id=uid();
+      if(!(await IDB.put(id,full)) || !(await IDB.put('t'+id,th))){ ko++; continue; }
+      PH[id]=full; PH['t'+id]=th; DB.photos.push({id,date,cap}); ok++;
+    }catch(x){ ko++; }
+  }
+  $('#phPick').disabled=false;
+  if(ok) save();
+  $('#phCap').value=''; rPhoto();
+  toast(ok? `${ok} photo${ok>1?'s':''} ajoutée${ok>1?'s':''}${ko?` · ${ko} refusée${ko>1?'s':''}`:''}` : 'Aucune photo ajoutée (mémoire pleine ?)');
+};
+$('#phGal').onclick=e=>{ const t=e.target.closest('[data-ph]'); if(t) phOpen(t.dataset.ph); };
+$('#phBox').onclick=e=>{
+  const b=e.target.closest('button');
+  if(!b){ if(e.target.id==='phBoxImg') phClose(); return; }
+  if(b.dataset.pn) phStep(+b.dataset.pn);
+  else if(b.dataset.pc) phClose();
+  else if(b.dataset.pe) phEdit();
+  else if(b.dataset.px) phDel();
+};
+document.addEventListener('keydown',e=>{ if(!$('#phBox').classList.contains('on')) return;
+  if(e.key==='Escape') phClose(); else if(e.key==='ArrowLeft') phStep(-1); else if(e.key==='ArrowRight') phStep(1); });
 
 /* ---------- synthèse imprimable ---------- */
 function buildPrint(){
@@ -1860,18 +2041,31 @@ function doPrint(){
 }
 $('#hPrint').onclick=doPrint;
 function exportJSON(){DB.savedAt=new Date().toLocaleString('fr-FR');save();
-  const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  // les images voyagent dans la sauvegarde : c'est le seul moyen de les retrouver sur un autre appareil
+  const out={...DB,photos:DB.photos.map(p=>({...p,src:PH[p.id]||null,thumb:PH['t'+p.id]||null}))};
+  const b=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(b);
   a.download='classement-jds-'+new Date().toISOString().slice(0,10)+'.json';a.click();
   if(view==='set')rSet(); toast('Sauvegarde exportée');}
 $('#expJ').onclick=exportJSON; $('#hSave').onclick=exportJSON;
 $('#impJ').onclick=()=>$('#fileJ').click();
 $('#fileJ').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
-  r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.players||!d.matches)throw 0;
-    DB={...DB,...d};save();render();toast('Données importées');}catch(x){toast('Fichier invalide');}};
+  r.onload=async()=>{try{const d=JSON.parse(r.result);if(!d.players||!d.matches)throw 0;
+    let np=0;
+    if(Array.isArray(d.photos)){
+      const clean=[];
+      for(const p of d.photos){ const {src,thumb,...meta}=p;
+        if(src&&!PH[p.id]){ if(await IDB.put(p.id,src)){ PH[p.id]=src; np++; } }
+        if(thumb&&!PH['t'+p.id]&&await IDB.put('t'+p.id,thumb)) PH['t'+p.id]=thumb;
+        clean.push(meta); }
+      d.photos=clean;
+    }
+    DB={...DB,...d};save();render();
+    toast('Données importées'+(np?` · ${np} photo${np>1?'s':''}`:''));}catch(x){toast('Fichier invalide');}};
   r.readAsText(f);e.target.value='';};
-$('#wipe').onclick=()=>{if(confirm('Effacer toutes les données ?')){localStorage.removeItem(KEY);
-  DB={players:[],games:[],series:[],matches:[],histYears:[],seasonCfg:{},settings:{start:1000,k:32,ref:2.5,yearly:0,sizeMode:'sqrt',newN:5,newMult:2,winBonus:25,curve:1,capDefault:21},savedAt:null};render();toast('Effacé');}};
+$('#wipe').onclick=()=>{if(confirm('Effacer toutes les données, photos comprises ?')){localStorage.removeItem(KEY);
+  localStorage.removeItem(PHKEY); PH={}; try{ if(IDB.db){IDB.db.close(); IDB.db=null;} indexedDB.deleteDatabase('mdo-photos'); }catch(e){}
+  DB={players:[],games:[],series:[],matches:[],histYears:[],photos:[],seasonCfg:{},settings:{start:1000,k:32,ref:2.5,yearly:0,sizeMode:'sqrt',newN:5,newMult:2,winBonus:25,curve:1,capDefault:21},savedAt:null};render();toast('Effacé');}};
 
 $('#hLogo').innerHTML=mdo(26);
 if(RO){
@@ -1881,5 +2075,6 @@ if(RO){
     $('#roBar').innerHTML= ok
       ? `Consultation${d?` · mis à jour le ${d.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})} à ${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}`:''}`
       : '<span style="color:var(--red)">Données indisponibles : rechargez la page dans un instant.</span>'; });
-} else { load(); render(); rPub(); }
+} else { load(); render(); rPub();
+  IDB.all().then(m=>{ PH=m; if(view==='photo') rPhoto(); }); }
 </script></body></html>
